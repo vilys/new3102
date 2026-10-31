@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中廣核礦業（01164.HK）下跌歸因與板塊同步性分析</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --ink:#1c2024; --ink2:#4a5158; --ink3:#868e96;
+    --line:#e3e6ea; --up:#d8382f; --down:#1e9e5a; --accent:#1b4f8a; --warn:#b8860b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei","Noto Sans TC",sans-serif;
+    font-size:15px;line-height:1.75;}
+  .wrap{max-width:1120px;margin:0 auto;padding:36px 24px 72px;}
+  header{border-bottom:3px solid var(--ink);padding-bottom:18px;margin-bottom:28px;}
+  h1{font-size:26px;margin:0 0 8px;letter-spacing:-.4px;}
+  .sub{color:var(--ink3);font-size:13px;}
+  h2{font-size:19px;margin:38px 0 14px;padding-left:11px;border-left:4px solid var(--accent);}
+  h3{font-size:16px;margin:24px 0 10px;color:var(--ink2);}
+  p{margin:10px 0;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 22px;margin:16px 0;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px;margin:20px 0;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:14px 16px;}
+  .kpi .lbl{font-size:12px;color:var(--ink3);letter-spacing:.2px;}
+  .kpi .val{font-size:22px;font-weight:700;margin:5px 0 2px;letter-spacing:-.5px;}
+  .kpi .note{font-size:11.5px;color:var(--ink3);}
+  .up{color:var(--up);} .down{color:var(--down);}
+  .tag{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:20px;background:#eef1f5;color:var(--ink2);margin-right:6px;}
+  .tag.r{background:#fdeceb;color:var(--up);} .tag.g{background:#e8f6ee;color:var(--down);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:12px 0;}
+  th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:right;}
+  th{background:#f0f2f5;font-weight:600;color:var(--ink2);font-size:12.5px;text-align:right;}
+  th:first-child,td:first-child{text-align:left;}
+  tbody tr:hover{background:#fafbfc;}
+  .chartbox{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 14px 8px;margin:16px 0;}
+  .src{font-size:11.5px;color:var(--ink3);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);}
+  .chain{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0;}
+  .chain .col{flex:1 1 240px;border-radius:10px;padding:15px 17px;border:1px solid var(--line);background:var(--card);}
+  .chain .col h4{margin:0 0 9px;font-size:14px;letter-spacing:.2px;}
+  .chain .col ul{margin:0;padding-left:17px;font-size:13px;color:var(--ink2);}
+  .chain .col li{margin:6px 0;}
+  .col.upc{border-top:4px solid var(--up);} .col.downc{border-top:4px solid var(--down);} .col.midc{border-top:4px solid var(--ink3);}
+  .quote{border-left:4px solid var(--warn);background:#fffbf0;padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;font-size:14px;}
+  .quote .who{font-size:11.5px;color:var(--ink3);display:block;margin-top:6px;}
+  .disc{background:#eef1f5;border-radius:9px;padding:16px 18px;font-size:12.5px;color:var(--ink2);margin-top:30px;line-height:1.7;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:760px){.two{grid-template-columns:1fr;}}
+  ul.tight{margin:8px 0;padding-left:19px;} ul.tight li{margin:5px 0;}
+  .hint{font-size:12px;color:var(--ink3);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>中廣核礦業（01164.HK）：為什麼跌成這樣？</h1>
+  <div class="sub">核能板塊同步性拆解 · 國內外 9 個標的橫向對比 · 數據時點：港股 2026-09-11 盤中 / 美股 2026-09-10 收盤</div>
+</header>
+
+<!-- ============ TL;DR ============ -->
+<div class="card">
+  <h2 style="margin-top:0;border-left-color:var(--up)">核心結論</h2>
+  <p><strong>你的觀察只對了一半。</strong>01164 不是「跟核能板塊不同步」——它是跟<strong>核電運營商</strong>反向，但跟<strong>全球鈾礦/鈾貿易商</strong>同向，只是在同向下又跌得比海外同業狠得多。</p>
+  <ul class="tight">
+    <li><strong>板塊內部的斷層線</strong>：下游核電運營商（中廣核電力 +7.52%、中國核電 +6.73% YTD）在漲；上游鈾礦/貿易商（01164 −26.85%、中核國際 −23.84% YTD）在跌。兩者是<strong>完全不同的商業模式</strong>，不是同一個「板塊」。</li>
+    <li><strong>01164 的超額跌幅</strong>：全球鈾礦同業 YTD 大致在 −6% 至 +11% 之間，01164 卻 −26.85%，<strong>超額落後約 30 個百分點</strong>。這部分是公司特有的（中報虧損擴大、不派息、成本倒掛）。</li>
+    <li><strong>基本面消息其實偏正面</strong>：鈾長協價 96.5 美元/磅創 18 年新高，公司新定價機制上調基價 50%+，券商普遍維持買入。這波跌是<strong>估值/情緒/資金</strong>驅動，不是產業邏輯逆轉。</li>
+  </ul>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="lbl">最新價（9/11 盤中）</div><div class="val">2.250</div><div class="note">港元 · 當日 −5.86%</div></div>
+  <div class="kpi"><div class="lbl">年初至今</div><div class="val down">−26.85%</div><div class="note">恒指同期約 −3.7%</div></div>
+  <div class="kpi"><div class="lbl">近 10 日</div><div class="val down">−21.60%</div><div class="note">近 20 日 −16.67%</div></div>
+  <div class="kpi"><div class="lbl">距 52 週高</div><div class="val down">−60.2%</div><div class="note">高點 5.646 港元</div></div>
+  <div class="kpi"><div class="lbl">PE (TTM)</div><div class="val">38.8×</div><div class="note">PB 3.82× · 股息率 0.62%</div></div>
+  <div class="kpi"><div class="lbl">賣空占比（9/10）</div><div class="val">35.4%</div><div class="note">8/28 曾達 43.6%</div></div>
+</div>
+<div class="src">來源：westock-data 行情（01164 報價與 60 日 K 線，2026-09-11 盤中）；恒生指數區間漲跌 2026-09-01 至 09-11 為 −3.65%（westock 指數行情）。52 週高點 5.646 / 低點 2.070 港元。</div>
+
+<!-- ============ 圖 1：YTD 對比 ============ -->
+<h2>一、第一張圖就說明問題：同一個「核能」，兩條命脈</h2>
+<p>把 9 個標的按年初至今漲跌幅排成一列，斷層立刻浮現——左邊清一色是<strong>鈾礦開採與鈾貿易</strong>，右邊清一色是<strong>核電站運營</strong>。01164 站在最左端，是全場最弱的一根柱子。</p>
+
+<div class="chartbox">
+  <div id="chartYtd" style="width:100%;height:400px;"></div>
+  <div class="src">來源：westock-data 行情，港股 2026-09-11 盤中、美股 2026-09-10 收盤（跨市場未做時點對齊與匯率換算）。紅＝上漲、綠＝下跌（中國市場慣例）。CCJ 為 Cameco Corp.，UEC 為 Uranium Energy Corp.，UUUU 為 Energy Fuels Inc.，NXE 為 NexGen Energy Ltd.，URA 為 Global X 鈾 ETF。</div>
+</div>
+
+<div class="chain">
+  <div class="col downc">
+    <h4>上游：鈾礦開採 / 鈾貿易 <span class="tag g">全線下跌</span></h4>
+    <ul>
+      <li>中廣核礦業 01164.HK <span class="down">−26.85%</span></li>
+      <li>中核國際 02302.HK <span class="down">−23.84%</span></li>
+      <li>Energy Fuels UUUU <span class="down">−6.26%</span></li>
+      <li>Uranium Energy UEC <span class="down">−5.65%</span></li>
+      <li>鈾 ETF URA <span class="up">+5.31%</span></li>
+      <li>Cameco CCJ <span class="up">+6.48%</span></li>
+      <li>NexGen NXE <span class="up">+10.98%</span></li>
+    </ul>
+    <p class="hint" style="margin-top:10px">屬性：商品股。現金流高度依賴未來鈾價，屬「長久期資產」，對利率與情緒極敏感。</p>
+  </div>
+  <div class="col upc">
+    <h4>下游：核電站運營 <span class="tag r">逆勢上漲</span></h4>
+    <ul>
+      <li>中廣核電力 01816.HK <span class="up">+7.52%</span></li>
+      <li>中國核電 601985.SH <span class="up">+6.73%</span></li>
+    </ul>
+    <p class="hint" style="margin-top:10px">屬性：公用事業股。上網電價 + 穩定發電量 = 類債現金流，防禦性強、股息高（01816 股息率 3.23%）。</p>
+  </div>
+</div>
+<div class="src">來源：westock-data 行情（2026-09-11 盤中）。中核國際為天然鈾貿易商，非電站運營商，商業模式更接近 01164 而非 01816，故歸入上游類。</div>
+
+<div class="quote">
+  市場買「核能」時，買的其實是兩種完全不同的東西：<strong>買運營商 = 買穩定的電價現金流（債性）</strong>；<strong>買鈾礦商 = 買鈾價的未來（期權性）</strong>。當利率上行、風險偏好收縮時，債性資產抗跌、期權性資產先被砍——這才是「不同步」的真正機制。
+</div>
+
+<!-- ============ 圖 2：多窗口 ============ -->
+<h2>二、把時間軸拉開看：01164 的跌幅是「加速度式」的</h2>
+<p>如果只是板塊共跌，各窗口跌幅應該大致同步。但 01164 的近 10 日（−21.60%）遠大於近 60 日（−25.64%）能解釋的部分——說明<strong>近兩週發生了集中拋售</strong>，而不是緩慢陰跌。</p>
+
+<div class="chartbox">
+  <div id="chartWin" style="width:100%;height:380px;"></div>
+  <div class="src">來源：westock-data 行情（01164 為 2026-09-11 盤中，其餘為 2026-09-10 收盤）。YTD＝年初至今。01164 近 5 日 −7.79%、近 10 日 −21.60%、近 20 日 −16.67%、近 60 日 −25.64%。</div>
+</div>
+
+<table>
+  <thead><tr><th>標的</th><th>代碼</th><th>5 日</th><th>10 日</th><th>20 日</th><th>60 日</th><th>YTD</th></tr></thead>
+  <tbody>
+    <tr><td>中廣核礦業</td><td>01164.HK</td><td class="down">−7.79%</td><td class="down">−21.60%</td><td class="down">−16.67%</td><td class="down">−25.64%</td><td class="down">−26.85%</td></tr>
+    <tr><td>中核國際</td><td>02302.HK</td><td class="down">−5.23%</td><td class="down">−11.91%</td><td class="down">−13.48%</td><td class="down">−11.37%</td><td class="down">−23.84%</td></tr>
+    <tr><td>Cameco</td><td>CCJ</td><td class="up">+1.08%</td><td class="down">−9.26%</td><td class="down">−1.63%</td><td class="down">−8.97%</td><td class="up">+6.48%</td></tr>
+    <tr><td>鈾 ETF</td><td>URA</td><td class="up">+1.53%</td><td class="down">−6.37%</td><td class="down">−6.35%</td><td class="down">−6.37%</td><td class="up">+5.31%</td></tr>
+    <tr><td>中廣核電力</td><td>01816.HK</td><td class="down">−1.46%</td><td class="down">−0.33%</td><td class="up">+8.94%</td><td class="up">+5.00%</td><td class="up">+7.52%</td></tr>
+    <tr><td>中國核電</td><td>601985.SH</td><td class="down">−0.44%</td><td class="up">+1.35%</td><td class="up">+2.96%</td><td class="up">+0.89%</td><td class="up">+6.73%</td></tr>
+  </tbody>
+</table>
+<div class="src">來源：westock-data 行情，2026-09-11 盤中（A 股/港股）與 2026-09-10 收盤（美股）。</div>
+
+<!-- ============ 圖 3：K 線 ============ -->
+<h2>三、01164 自己的故事：一紙中報，引爆了兩輪下跌</h2>
+<p>K 線上能看到兩次「台階式」下挫，各自對應一個明確事件。</p>
+
+<div class="chartbox">
+  <div id="chartK" style="width:100%;height:440px;"></div>
+  <div class="src">來源：westock-data 60 日 K 線（01164.HK，截至 2026-09-11 盤中）。柱狀為成交量（股）。標註事件：8/27 中期業績公告、9/9 鈾長協價創新高、9/10 港股有色板塊系統性回調。</div>
+</div>
+
+<div class="two">
+  <div class="card">
+    <h3 style="margin-top:0">台階一 · 8/27–8/31：業績利空</h3>
+    <p style="font-size:13.5px">8/27 盤後公布中期業績，8/28 單日 <span class="down">−6.21%</span>（成交 1.06 億股、賣空占比飆至 <strong>43.64%</strong>），8/31 再 <span class="down">−8.54%</span>。三週累計從 3.1 港元跌到 2.6 港元區間。</p>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">台階二 · 9/9–9/11：情緒與利率</h3>
+    <p style="font-size:13.5px">9/9 因鈾長協價創新高反彈 <span class="up">+7.00%</span>，但隔日即被打回 <span class="down">−8.08%</span>，9/11 再 <span class="down">−5.86%</span> 創一個月新低 2.245 港元。反彈失敗 → 信心二次崩塌。</p>
+  </div>
+</div>
+
+<h3>8/27 中報：數字很難看，但性質是「節奏」而非「斷裂」</h3>
+<table>
+  <thead><tr><th>2026 中期業績項目</th><th>數值</th><th>同比</th></tr></thead>
+  <tbody>
+    <tr><td>營業額</td><td>20.25 億港元</td><td class="up">+19%</td></tr>
+    <tr><td>本公司擁有人應占虧損</td><td>−8,006 萬港元</td><td class="down">虧損擴大 18%</td></tr>
+    <tr><td>每股基本虧損</td><td>1.05 港仙</td><td class="down">虧損擴大 18%</td></tr>
+    <tr><td>中期股息</td><td>不派發</td><td>—</td></tr>
+    <tr><td>應占謝公司業績</td><td>約 5,700 萬港元</td><td class="down">−55%</td></tr>
+    <tr><td>應占奧公司業績</td><td>約 8,100 萬港元</td><td class="down">−55%</td></tr>
+    <tr><td>四座礦山加權單位成本</td><td>39 美元/磅</td><td class="down">+43%</td></tr>
+  </tbody>
+</table>
+<div class="src">來源：中廣核礦業中期業績公告（2026-08-27，經港交所披露）；智通財經、經濟觀察報 2026-08-27/28 轉載整理（非一手來源，需核實原文）。單位成本細項：謝礦 53.35 美元/磅（+64%）、伊礦 44.46 美元/磅（+61%）、中礦 37.29 美元/磅（+48%）、扎礦 26.45 美元/磅（+4%）。</div>
+
+<p><strong>虧損的三個直接原因</strong>（公司公告口徑）：</p>
+<ul class="tight">
+  <li><strong>銷量後移</strong>：原計劃上半年交付的天然鈾推遲到下半年，謝公司、奧公司銷量同比下降；</li>
+  <li><strong>成本倒掛</strong>：加權成本會計法下，帳面存貨加權平均成本高於當期銷售合同售價，國際貿易業務錄得毛損 1.34 億港元（上年同期 2.29 億，已收窄）；</li>
+  <li><strong>硫酸瓶頸</strong>：謝礦硫酸廠起火致供應不足（產量僅完成計劃 97%）；哈薩克 TQZ 硫酸廠因發現古生物化石而建設推遲，全行業成本中樞被推高。</li>
+</ul>
+
+<!-- ============ 圖 4：賣空 ============ -->
+<h2>四、資金面：空頭在 8 月下旬就已經「重兵壓境」</h2>
+<p>賣空占比從 8/12 起就持續高於 28%，8/27、8/28 兩天衝到 <strong>41.47% / 43.64%</strong>——這是機構在業績公布前後密集做空的直接證據。同期南向資金 9/10 淨減持 1,252 萬股，主力資金淨流出約 756 萬港元。</p>
+
+<div class="chartbox">
+  <div id="chartShort" style="width:100%;height:330px;"></div>
+  <div class="src">來源：港股賣空比例數據（01164.HK，2026-08-12 至 09-10）。南向持股 16.61%，9/10 日變動 −1,252 萬股、市值 −3,035 萬港元；9/11 主力淨流出 756 萬港元、總淨流出 651 萬港元（westock-data 資金流）。</div>
+</div>
+
+<div class="quote">
+  注意這個順序：<strong>賣空比例在 8/24–8/28 就已衝到 38%–44%</strong>，而業績是 8/27 才公布。這說明下跌不是「被動反應業績」，而是<strong>有資金提前布局、業績落地後兌現</strong>。9/9 那根 +7% 的陽線，更像是空頭回補造成的假反彈。
+</div>
+
+<!-- ============ 五、三層歸因 ============ -->
+<h2>五、歸因拆解：三層壓力疊加，一層是它獨有的</h2>
+
+<div class="card">
+  <h3 style="margin-top:0">第一層 · 公司特有（01164 獨有，解釋超額跌幅）</h3>
+  <ul class="tight">
+    <li>中報虧損擴大 18%、不派息 → 直接擊穿「盈利何時兌現」的敘事；</li>
+    <li>貿易業務成本倒掛 → 市場對其<strong>盈利質量</strong>與商業模式脆弱性重新定價；</li>
+    <li>單位成本 +43% → 削弱「鈾價漲就能賺」的線性預期；</li>
+    <li>賣空占比 40%+、南向減持 → 資金面自我強化的下行螺旋。</li>
+  </ul>
+  <p class="hint">這層是海外同業沒有的：CCJ、NXE 沒有「庫存成本倒掛」這種貿易商特有的結構性問題。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">第二層 · 板塊屬性（解釋為何與核電運營商反向）</h3>
+  <ul class="tight">
+    <li>01164 上市歸屬板塊是<strong>「其它金屬礦物」</strong>，不是「電力」。9/11 該板塊當日 <span class="down">−7.58%</span>；</li>
+    <li>同日港股有色系統性重挫：江西銅業 −8.16%、洛陽鉬業約 −7%、紫金礦業約 −6%、中國宏橋 −4.10%、贛鋒鋰業 −4.52%；</li>
+    <li>而同期電力股跌幅僅約 −1.3%（中廣核電力 −1.29%、中廣核新能源 −1.38%）。</li>
+  </ul>
+  <p class="hint">所以 01164 被「有色金屬 beta」拖著走，而非被「核能 beta」拖著走——這是它與 01816 走勢分岔的板塊歸屬原因。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">第三層 · 宏觀利率（解釋為何全球鈾礦股同期都跌）</h3>
+  <ul class="tight">
+    <li>10 年期美債收益率升至約 4.96%、30 年期突破 5.37%，為 2007 年 6 月以來新高；</li>
+    <li>美國 8 月 PPI 超預期 + 中東油價，市場對美聯儲 9 月加息概率的定價升至約七成；</li>
+    <li>鈾礦是<strong>長久期現金流資產</strong>，估值依賴 DCF 折現，無風險利率抬升直接壓縮估值倍數；</li>
+    <li>01164 外資交易占比高，對全球定價體系尤為敏感。</li>
+  </ul>
+  <p class="hint">這一層對 CCJ、UEC、UUUU 同樣成立（9/10 分別 −2.98%、−5.00%、−6.32%），是共同壓力而非個股問題。</p>
+</div>
+<div class="src">來源：港股異動與板塊行情（etnet 經濟通、富途、智通財經，2026-09-11）；美債收益率與加息預期為市場報導口徑（雪球用戶分析、CNEA 2026 年 9 月鈾價指數報告，非一手來源，需核實原文）。</div>
+
+<!-- ============ 六、矛盾點 ============ -->
+<h2>六、最值得注意的矛盾：產業面的消息，其實是偏正面的</h2>
+<p>這是本次下跌最反直覺的地方——跌幅與消息面明顯背離：</p>
+
+<table>
+  <thead><tr><th>產業/公司消息（同期）</th><th>方向</th><th>細節</th></tr></thead>
+  <tbody>
+    <tr><td>天然鈾長期合同價</td><td class="up">創新高</td><td>8 月收於 96.50 美元/磅，超越 2007 年 95 美元峰值（名義價，至少 18 年新高）</td></tr>
+    <tr><td>天然鈾現貨價</td><td class="up">高位</td><td>8 月末站上 90 美元/磅，9 月初在 89.5–89.9 美元區間</td></tr>
+    <tr><td>公司新定價機制</td><td class="up">大幅上調</td><td>2026–2028 年自產鈾基價由 61.78/63.94/66.17 上調至 <strong>94.22/98.08/102.10 美元/磅</strong>；現貨掛鉤比例 60%→70%</td></tr>
+    <tr><td>自產貿易毛利</td><td class="up">已轉正</td><td>2026H1 自產鈾包銷 173 噸，均價由 71.1 升至 87.9 美元/磅，毛利由虧 1,800 萬轉為盈 1,500 萬港元</td></tr>
+    <tr><td>扎礦一期</td><td class="up">已投產</td><td>500 噸鈾/年項目 2026/7/29 正式投產，預計 2027 年達產</td></tr>
+    <tr><td>券商評級</td><td class="up">普遍看多</td><td>國泰海通首予「增持」目標價 3.5 港元；華源「買入」；招銀國際「買入」目標價 3.37 港元；里昂「跑贏大市」目標價 4.75 港元</td></tr>
+  </tbody>
+</table>
+<div class="src">來源：Crux Investor / UxC / TradeTech 長協價（2026-08 月末）；中廣核礦業中期業績公告與華源證券研報（2026-09-03）、國泰海通研報（2026-09-08，首次覆蓋）、招銀國際、里昂（轉引自智通財經、證券之星、金吾財訊，研報內容需核實原文）。</div>
+
+<p><strong>這說明：</strong>本輪下跌的主要驅動力是<strong>估值、情緒與資金</strong>，而非天然鈾的中長期供需邏輯被推翻。但這不等於「錯殺」——下一節講反面。</p>
+
+<!-- ============ 七、預期差與反面 ============ -->
+<h2>七、預期差與反面聲音</h2>
+<div class="two">
+  <div class="card">
+    <h3 style="margin-top:0;color:var(--up)">可能的預期差（偏正面）</h3>
+    <ul class="tight">
+      <li>上半年延後交付的自產鈾若在下半年落地，銷量環比明顯回升；</li>
+      <li>新定價機制 70% 掛鉤現貨，鈾價高位時利潤彈性放大；</li>
+      <li>中廣核國際銷售公司 26H1 未交付鈾均價 88.58 / 加權成本 80.88 美元/磅，套利空間約 7.7 美元/磅；</li>
+      <li>市場已充分定價「中報難看」，但可能尚未定價「交付回補 + 定價機制上調」的組合。</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0" style="color:var(--down)">反面聲音（偏負面，必須一起看）</h3>
+    <ul class="tight">
+      <li><strong>估值並不便宜</strong>：PE(TTM) 約 38.8×、PB 3.82×，在利率上行環境下容錯空間小（Yahoo 口徑 39.83×、富途口徑 41.21×，差異見第八節）；</li>
+      <li><strong>成本倒掛不是純粹「暫時性」</strong>：貿易商靠庫存價差吃飯，成本中樞被硫酸與礦山到壽推高，是結構性壓力；</li>
+      <li><strong>硫酸供應</strong>：哈薩克 TQZ 硫酸廠推遲，公司自述下半年重點之一即「關注硫酸供應問題」；</li>
+      <li><strong>客戶集中</strong>：產品主要包銷給中廣核集團體系，議價彈性受限；</li>
+      <li><strong>賣空比例仍高</strong>：9/10 仍達 35.43%，空頭尚未撤離。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="quote">
+  一個容易犯的歸因錯誤：把這波跌全部歸給「美債利率」或「大盤迴調」。這只解釋了共同的 5–10 個百分點，<strong>剩下約 20 個百分點是 01164 自己中報＋成本倒掛＋賣空擁擠造成的</strong>。如果下半年交付如期回補、現貨價維持，這 20 個百分點可能修復；如果硫酸與成本繼續惡化，那它就不是「錯殺」。
+</div>
+
+<!-- ============ 八、口徑與來源 ============ -->
+<h2>八、數據口徑提醒（對比前必須先對齊）</h2>
+<table>
+  <thead><tr><th>項目</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td>時點不對齊</td><td>港股/A 股為 2026-09-11 盤中，美股為 2026-09-10 收盤。美股 9/10 那根陰線與港股 9/11 的下跌同一波邏輯，但嚴格來說不是同一時點。</td></tr>
+    <tr><td>YTD 口徑分歧</td><td>01164 的 YTD：westock −26.85%（9/11 盤中）、Yahoo Finance −23.15%（9/10 收盤）。差異來自取值時點與復權處理。</td></tr>
+    <tr><td>PE 口徑分歧</td><td>01164 PE(TTM)：westock 38.84×、Yahoo 39.83×、富途 41.21×。差異來自 TTM 起算季度與幣種折算，本文採用 westock 38.84×。</td></tr>
+    <tr><td>幣種未換算</td><td>港股為港元、A 股為人民幣、美股為美元，跨市場數值未做匯率換算；Canada 公司（CCJ、NXE）財務原始披露為加元。</td></tr>
+    <tr><td>財年差異</td><td>01164 財年為自然年（12 月 31 日止）；本次中報為 2026 上半年。CCJ、UUUU 等的美股季度口徑與之未逐一對齊，故本文以股價表現而非財務同期做跨市場比較。</td></tr>
+  </tbody>
+</table>
+
+<h3>主要來源清單</h3>
+<ul class="tight" style="font-size:13px">
+  <li><strong>一手</strong>：中廣核礦業中期業績公告（2026-08-27，港交所披露）；中核國際中期報告（2026-09-10，港交所披露易）；港交所賣空與南向持股數據。</li>
+  <li><strong>行情數據</strong>：westock-data（01164 / 01816 / 02302 / 601985 / CCJ / UEC / UUUU / NXE / URA 報價、K 線、資金流、板塊行情），取值時點 2026-09-11 10:35 CST。</li>
+  <li><strong>研報（非一手，需核實原文）</strong>：華源證券（2026-09-03，買入）、國泰海通（2026-09-08，首次覆蓋增持，目標價 3.5 港元）、華泰證券（2026-08-28）、招銀國際（買入，NPV 目標價 3.37 港元）、里昂（跑贏大市，目標價 4.75 港元）。</li>
+  <li><strong>行業數據（非一手）</strong>：UxC / TradeTech 長協價；中國核能行業協會 CNEA 國際天然鈾價格預測指數（2026 年 9 月）；花旗、Jefferies、UBS、高盛相關觀點（轉引自 Crux Investor、WSJ/Dow Jones、EconoTimes）。</li>
+  <li><strong>財經媒體</strong>：智通財經、經濟觀察報、etnet 經濟通、富途牛牛、證券之星、金吾財訊、凤凰網。</li>
+</ul>
+
+<div class="disc">
+  <strong>免責聲明</strong>：以上內容基於公開數據和量化分析，僅供參考，不構成投資建議。市場有風險，投資需謹慎。任何投資決策應結合個人風險承受能力、資金狀況和投資目標獨立判斷，必要時諮詢持牌專業機構。過往表現不預示未來收益。
+</div>
+
+</div>
+
+<script>
+// ---------- 圖 1：YTD 對比 ----------
+(function(){
+  var d = [
+    {n:'中廣核礦業 01164.HK', v:-26.85},
+    {n:'中核國際 02302.HK',   v:-23.84},
+    {n:'Energy Fuels UUUU',   v:-6.26},
+    {n:'Uranium Energy UEC',  v:-5.65},
+    {n:'鈾ETF URA',           v: 5.31},
+    {n:'Cameco CCJ',          v: 6.48},
+    {n:'中國核電 601985.SH',  v: 6.73},
+    {n:'中廣核電力 01816.HK', v: 7.52},
+    {n:'NexGen NXE',          v:10.98}
+  ];
+  echarts.init(document.getElementById('chartYtd')).setOption({
+    grid:{left:150,right:52,top:20,bottom:34},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},
+      formatter:function(p){return p[0].name+'<br/>YTD：'+p[0].value+'%';}},
+    xAxis:{type:'value',name:'年初至今漲跌幅 (%)',axisLabel:{formatter:'{value}%'},
+      splitLine:{lineStyle:{color:'#eceff3'}}},
+    yAxis:{type:'category',data:d.map(function(x){return x.n;}),axisTick:{show:false},
+      axisLine:{lineStyle:{color:'#d6dae0'}}},
+    series:[{
+      type:'bar', barWidth:'58%',
+      data:d.map(function(x){
+        return {value:x.v, itemStyle:{color: x.v>=0 ? '#d8382f' : '#1e9e5a',
+          borderRadius: x.v>=0 ? [0,4,4,0] : [4,0,0,4]}};
+      }),
+      label:{show:true,position:'right',formatter:'{c}%',fontSize:12,color:'#4a5158'}
+    }]
+  });
+})();
+
+// ---------- 圖 2：多窗口對比 ----------
+(function(){
+  var cats = ['01164.HK','02302.HK','CCJ','URA','01816.HK','601985.SH'];
+  var wins = ['5 日','10 日','20 日','60 日','YTD'];
+  var data = {
+    '5 日':  [-7.79,-5.23, 1.08, 1.53,-1.46,-0.44],
+    '10 日': [-21.60,-11.91,-9.26,-6.37,-0.33, 1.35],
+    '20 日': [-16.67,-13.48,-1.63,-6.35, 8.94, 2.96],
+    '60 日': [-25.64,-11.37,-8.97,-6.37, 5.00, 0.89],
+    'YTD':   [-26.85,-23.84, 6.48, 5.31, 7.52, 6.73]
+  };
+  echarts.init(document.getElementById('chartWin')).setOption({
+    grid:{left:58,right:26,top:44,bottom:38},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:function(v){return v+'%';}},
+    legend:{data:wins,top:6,itemWidth:13,itemHeight:9,textStyle:{fontSize:12,color:'#4a5158'}},
+    xAxis:{type:'category',data:cats,axisLabel:{fontSize:12,color:'#4a5158'}},
+    yAxis:{type:'value',name:'漲跌幅 (%)',axisLabel:{formatter:'{value}%'},
+      splitLine:{lineStyle:{color:'#eceff3'}}},
+    series: wins.map(function(w){
+      return {name:w,type:'bar',data:data[w],barMaxWidth:16};
+    }),
+    color:['#2f6fb0','#5a9bd4','#8fbde5','#e0a94b','#1c2024']
+  });
+})();
+
+// ---------- 圖 3：K 線 + 量 ----------
+(function(){
+  var rows = [
+    ['07-02',2.43,2.43,2.41,2.50,20885640],
+    ['07-03',2.44,2.59,2.44,2.59,37450000],
+    ['07-06',2.59,2.66,2.51,2.71,34140000],
+    ['07-07',2.66,2.52,2.49,2.66,27680444],
+    ['07-08',2.45,2.50,2.42,2.52,32989224],
+    ['07-09',2.50,2.47,2.38,2.50,23645860],
+    ['07-10',2.48,2.43,2.42,2.59,42389379],
+    ['07-13',2.44,2.31,2.27,2.44,51835311],
+    ['07-14',2.31,2.36,2.22,2.38,53900214],
+    ['07-15',2.39,2.32,2.28,2.39,50647450],
+    ['07-16',2.30,2.29,2.26,2.35,37049112],
+    ['07-17',2.26,2.13,2.07,2.26,63129655],
+    ['07-20',2.13,2.17,2.10,2.18,21207040],
+    ['07-21',2.17,2.27,2.17,2.30,28405820],
+    ['07-22',2.33,2.48,2.29,2.57,91114060],
+    ['07-23',2.50,2.53,2.45,2.58,31848163],
+    ['07-24',2.46,2.45,2.40,2.50,28665418],
+    ['07-27',2.45,2.47,2.43,2.51,19476975],
+    ['07-28',2.45,2.34,2.30,2.48,26624040],
+    ['07-29',2.34,2.39,2.31,2.39,19800000],
+    ['07-30',2.36,2.34,2.28,2.50,34302602],
+    ['07-31',2.50,2.42,2.38,2.52,53545000],
+    ['08-03',2.445,2.485,2.435,2.540,30149426],
+    ['08-04',2.565,2.635,2.510,2.690,51644450],
+    ['08-05',2.690,2.795,2.645,2.810,58974645],
+    ['08-06',2.795,2.635,2.625,2.890,84142040],
+    ['08-07',2.670,2.750,2.665,2.765,33696444],
+    ['08-10',2.840,2.745,2.700,2.840,43035401],
+    ['08-11',2.720,2.630,2.605,2.750,31845000],
+    ['08-12',2.670,2.660,2.610,2.695,25878864],
+    ['08-13',2.680,2.600,2.590,2.735,25655268],
+    ['08-14',2.600,2.700,2.555,2.745,28292746],
+    ['08-17',2.720,2.815,2.720,2.885,30057123],
+    ['08-18',2.815,2.720,2.690,2.835,23716017],
+    ['08-19',2.685,2.655,2.625,2.770,31911800],
+    ['08-20',2.700,2.720,2.680,2.845,25289430],
+    ['08-21',2.700,2.970,2.690,3.010,75181280],
+    ['08-24',3.090,2.915,2.890,3.150,62877031],
+    ['08-25',2.945,2.885,2.765,2.945,47114774],
+    ['08-26',2.995,3.035,2.950,3.100,66209794],
+    ['08-27',3.060,3.060,2.975,3.120,39366062],
+    ['08-28',2.930,2.870,2.760,2.940,106236018],
+    ['08-31',2.760,2.625,2.585,2.760,88665187],
+    ['09-01',2.615,2.525,2.510,2.645,43606930],
+    ['09-02',2.495,2.405,2.380,2.495,66668053],
+    ['09-03',2.440,2.455,2.435,2.495,21653108],
+    ['09-04',2.560,2.440,2.420,2.565,35538888],
+    ['09-07',2.440,2.460,2.435,2.515,19990758],
+    ['09-08',2.490,2.430,2.395,2.560,46965277],
+    ['09-09',2.510,2.600,2.410,2.645,58226974],
+    ['09-10',2.585,2.390,2.380,2.585,45692000],
+    ['09-11',2.360,2.250,2.245,2.360,26424400]
+  ];
+  var dates = rows.map(function(r){return r[0];});
+  var kd = rows.map(function(r){return [r[1],r[2],r[3],r[4]];});
+  var vol = rows.map(function(r){return r[5];});
+  echarts.init(document.getElementById('chartK')).setOption({
+    tooltip:{trigger:'axis',axisPointer:{type:'cross'}},
+    legend:{data:['日K','成交量'],top:4,itemWidth:13,itemHeight:9,textStyle:{fontSize:12,color:'#4a5158'}},
+    grid:{left:58,right:26,top:40,bottom:56},
+    xAxis:{type:'category',data:dates,axisLabel:{fontSize:10.5,color:'#868e96',interval:4},
+      axisLine:{lineStyle:{color:'#d6dae0'}}},
+    yAxis:[
+      {scale:true,name:'股價 (港元)',axisLabel:{formatter:'{value}',fontSize:11,color:'#868e96'},
+        splitLine:{lineStyle:{color:'#eceff3'}}},
+      {scale:true,name:'成交量',axisLabel:{fontSize:11,color:'#868e96',
+        formatter:function(v){return (v/1000000).toFixed(0)+'M';}},splitLine:{show:false}}
+    ],
+    series:[
+      {name:'日K',type:'candlestick',data:kd,
+        itemStyle:{color:'#d8382f',color0:'#1e9e5a',borderColor:'#d8382f',borderColor0:'#1e9e5a'},
+        markLine:{symbol:'none',silent:true,
+          lineStyle:{color:'#b8860b',type:'dashed',width:1},
+          label:{fontSize:11,color:'#b8860b',position:'insideEndTop'},
+          data:[
+            {xAxis:'08-27',label:{formatter:'8/27 中報'}},
+            {xAxis:'09-09',label:{formatter:'9/9 長協新高'}},
+            {xAxis:'09-11',label:{formatter:'9/11 新低'}}
+          ]}
+      },
+      {name:'成交量',type:'bar',yAxisIndex:1,data:vol,
+        itemStyle:{color:'#b9c3cd'},barWidth:'55%'}
+    ]
+  });
+})();
+
+// ---------- 圖 4：賣空比例 ----------
+(function(){
+  var d = [
+    ['08-12',32.61],['08-13',29.08],['08-14',31.24],['08-17',27.91],['08-18',31.65],
+    ['08-19',29.75],['08-20',24.63],['08-21',26.14],['08-24',38.48],['08-25',33.89],
+    ['08-26',21.01],['08-27',41.47],['08-28',43.64],['08-31',28.22],['09-01',33.96],
+    ['09-02',18.13],['09-03',26.07],['09-04',28.49],['09-07',14.16],['09-08',13.78],
+    ['09-09',13.44],['09-10',35.43]
+  ];
+  echarts.init(document.getElementById('chartShort')).setOption({
+    grid:{left:56,right:26,top:30,bottom:40},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:function(v){return v+'%';}},
+    xAxis:{type:'category',data:d.map(function(x){return x[0];}),
+      axisLabel:{fontSize:10.5,color:'#868e96',interval:1},axisLine:{lineStyle:{color:'#d6dae0'}}},
+    yAxis:{type:'value',name:'賣空占比 (%)',axisLabel:{formatter:'{value}%',fontSize:11,color:'#868e96'},
+      splitLine:{lineStyle:{color:'#eceff3'}}},
+    series:[{
+      type:'bar',barWidth:'62%',
+      data:d.map(function(x){
+        return {value:x[1],itemStyle:{color: x[1]>=35 ? '#c0392b' : (x[1]>=28 ? '#e08a7a' : '#a9c6b5')}};
+      }),
+      markLine:{symbol:'none',silent:true,lineStyle:{color:'#b8860b',type:'dashed'},
+        label:{formatter:'35% 警戒',fontSize:11,color:'#b8860b'},
+        data:[{yAxis:35}]}
+    }]
+  });
+})();
+</script>
+</body>
+</html>

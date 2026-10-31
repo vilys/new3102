@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09696 天齊鋰業｜十七天後：假破位的統計審判（2026-10-29 更新）</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --ink:#1b2430; --ink2:#5a6673; --ink3:#8b95a1;
+    --line:#e3e7ec; --up:#c62828; --dn:#2e7d32; --amber:#b26a00; --blue:#1a5fb4;
+    --upbg:#fdf0f0; --dnbg:#eef6ef; --amdbg:#fdf6e8; --bluebg:#eef4fc;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+       font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;}
+  h1{font-size:25px;margin:0 0 6px;letter-spacing:-.4px;}
+  .sub{color:var(--ink2);font-size:13.5px;}
+  h2{font-size:18px;margin:34px 0 12px;padding-left:10px;border-left:4px solid var(--ink);letter-spacing:-.2px;}
+  h3{font-size:15px;margin:20px 0 8px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px;}
+  .verdict{border-left:5px solid var(--dn);background:var(--dnbg);border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+  .verdict .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.5px;
+    background:var(--dn);color:#fff;padding:2px 9px;border-radius:4px;margin-bottom:9px;}
+  .verdict p{margin:7px 0;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;margin-bottom:18px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:13px 14px;}
+  .kpi .lbl{font-size:11.5px;color:var(--ink3);letter-spacing:.3px;margin-bottom:5px;}
+  .kpi .val{font-size:20px;font-weight:700;letter-spacing:-.5px;}
+  .kpi .note{font-size:11.5px;color:var(--ink3);margin-top:3px;}
+  .up{color:var(--up);} .dn{color:var(--dn);} .amb{color:var(--amber);} .blu{color:var(--blue);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0 4px;}
+  th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{background:#eef0f3;font-weight:600;color:var(--ink2);font-size:12.5px;border-bottom:1.5px solid #d5dae0;}
+  tbody tr:hover{background:#fafbfc;}
+  .num{font-variant-numeric:tabular-nums;}
+  .chartbox{margin:6px 0 4px;}
+  .note-s{font-size:12px;color:var(--ink3);margin-top:8px;line-height:1.65;}
+  .ladder{position:relative;padding:6px 0;}
+  .rung{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #e8ebef;}
+  .rung:last-child{border-bottom:none;}
+  .rung .px{width:150px;font-weight:700;font-variant-numeric:tabular-nums;font-size:13.5px;flex:none;}
+  .rung .txt{font-size:12.5px;color:var(--ink2);}
+  .pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;font-weight:600;}
+  .pill.s{background:#e8f3e9;color:#1b5e20;}
+  .pill.m{background:#fdf6e8;color:#8a5200;}
+  .pill.w{background:#fdf0f0;color:#8e1f1f;}
+  .flag{background:var(--bluebg);border-left:4px solid var(--blue);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;font-size:13.5px;}
+  .warn{background:var(--amdbg);border-left:4px solid var(--amber);padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0;font-size:13.5px;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:760px){.two{grid-template-columns:1fr;}}
+  ul{padding-left:20px;margin:8px 0;}
+  li{margin:5px 0;}
+  .tl{position:relative;padding-left:22px;margin:8px 0;}
+  .tl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:#dde2e8;}
+  .tl .it{position:relative;padding:6px 0 10px;}
+  .tl .it::before{content:"";position:absolute;left:-20px;top:12px;width:9px;height:9px;border-radius:50%;background:var(--ink3);border:2px solid #fff;}
+  .tl .it.key::before{background:var(--dn);width:11px;height:11px;left:-21px;}
+  .tl .dt{font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;}
+  .tl .ds{font-size:13px;color:var(--ink2);}
+  footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--ink3);line-height:1.75;}
+  .src{font-size:12px;color:var(--ink3);margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>09696 天齊鋰業｜十七天後：假破位的統計審判</h1>
+  <div class="sub">2026-10-29 收盤更新 ｜ 對照基準：2026-10-12 版《底部檢驗》 ｜ 方法：event-study-odds 事件研究 × 路徑模擬 × 15 標的合併樣本</div>
+</div>
+
+<div class="verdict">
+  <span class="tag">結論先行</span>
+  <p><strong>仍然不構成進場理由——但性質變了。</strong>10/12 它是「自由落體」（近 30 日 9 次真破位）；10/29 它是「帶減速帶的下行」（10/23 出現 52 週低點 22.24 的假破位，下影 93.4%）。</p>
+  <p><strong>問題是：這個「假破位」在本板塊的統計上是負期望的。</strong>15 個鋰礦標的、293 個同類樣本，T+20 均值 +0.52%、勝率 49.6%，<strong>低於「什麼都不看」的 +2.39%</strong>；扣 0.75% 交易成本後，所有止損／目標組合的淨期望全部為負（−0.28% 至 −1.68%）。</p>
+  <p><strong>更刺眼的是：2026 年這同一個形態已經出現 6 次，前 3 次可驗證的全部失敗</strong>（T+20 分別 −20.33%、−17.95%、−14.18%）。</p>
+  <p><strong>所以判斷是：22.24 是「支撐標記」，不是「底部訊號」。</strong>真正的開關不在 K 線，在碳酸鋰——它 10/28 收 93,300 元/噸、單日 −4.64%，而供應端還在加速（澳洲鋰輝石 10 月到港 +35.9%、宜春枧下窩復產預期提前到 11 月初）。</p>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="lbl">收盤（10/29）</div><div class="val">23.74</div><div class="note dn">−2.94%</div></div>
+  <div class="kpi"><div class="lbl">距 52 週低（22.24）</div><div class="val">+6.7%</div><div class="note">低點出現於 10/23</div></div>
+  <div class="kpi"><div class="lbl">10/12 以來</div><div class="val dn">−8.4%</div><div class="note">25.92 → 23.74</div></div>
+  <div class="kpi"><div class="lbl">距 52 週高（69.15）</div><div class="val dn">−65.7%</div><div class="note">回撤幅度</div></div>
+  <div class="kpi"><div class="lbl">RSI6</div><div class="val amb">36.4</div><div class="note">10/22 曾低至 3.6</div></div>
+  <div class="kpi"><div class="lbl">ATR14</div><div class="val">4.56%</div><div class="note">自 5.18% 收斂</div></div>
+  <div class="kpi"><div class="lbl">H/A 折價</div><div class="val blu">42.3%</div><div class="note">A 股 34.91 元</div></div>
+</div>
+
+<h2>一、這十七天到底發生了什麼</h2>
+
+<div class="card">
+  <p style="margin-top:0">把時間軸攤開，會看到一個很典型的「三幕劇」：<strong>破位 → 假破位 → 財報無效</strong>。</p>
+  <div class="tl">
+    <div class="it"><div class="dt">10/12　收 25.92（−5.61%）</div><div class="ds">本報告的對照基準日。當時近 30 日已出現 9 次真破位，RSI6 僅 13.1。</div></div>
+    <div class="it"><div class="dt">10/13 – 10/22　連續破位，收 22.68</div><div class="ds">新增 8 根真破位（10/13、15、16、20、22 等）。10/22 盤中 22.52，收 22.68，當日 −3.66%。</div></div>
+    <div class="it"><div class="dt">10/22　碳酸鋰跌破 10 萬；宜春枧下窩環評公示</div><div class="ds">兩件事同日發生：碳酸鋰主力合約失守 100,000 元/噸；宜春市生態環境局對枧下窩鋰礦採礦項目環評報告書發布擬批准公示，公示期至 10/28。</div></div>
+    <div class="it key"><div class="dt">10/23　盤中 22.240（52 週新低）→ 收 23.380（+3.09%）</div><div class="ds"><strong>假破位</strong>：最低 22.24 跌破前低 22.52，收盤 23.38 拉回其上，下影線佔全日振幅 <strong>93.4%</strong>。成交 3.75M 股，僅為 20 日均量（3.55M）的 1.06 倍——<strong>不是恐慌性放量</strong>。</div></div>
+    <div class="it"><div class="dt">10/25（週日）　三季報披露</div><div class="ds">Q3 營收 60.37 億元（同比 +135.4%）、淨利 13.60 億元（同比 +1323.97%，<strong>環比 −42.6%</strong>）；前三季淨利 56.02 億元（同比 +3013.86%）。</div></div>
+    <div class="it"><div class="dt">10/26　+2.48%，收 23.96</div><div class="ds">財報後首日，成交放大到 6.69M（20 日均量的 1.9 倍）。</div></div>
+    <div class="it"><div class="dt">10/27　+2.17%，收 24.48</div><div class="ds">碳酸鋰盤中最高摸 99,880，離 10 萬只差 120 點；但持倉量反而減少 4,815 手——<strong>推上去的是空頭回補，不是新多進場</strong>。</div></div>
+    <div class="it"><div class="dt">10/28　−0.22%，收 24.46</div><div class="ds">碳酸鋰衝高回落，收 93,300（<strong>−4.64%</strong>），一天吐掉三日反彈的大半。</div></div>
+    <div class="it key"><div class="dt">10/29　−2.94%，收 23.74</div><div class="ds">A 股 002466 同步 −3.62%，H 股與 A 股同步走弱。股價再度跌破 MA10（23.83）。</div></div>
+  </div>
+  <div class="warn"><strong>這條時間軸本身就是答案：</strong>財報只撐了兩個交易日（10/26、10/27），第三、四天就被碳酸鋰拖回去。<strong>市場交易的不是「已實現的利潤」，是「利潤的二階導數」。</strong></div>
+</div>
+
+<h2>二、形態：從「瀑布」變成「減速帶」</h2>
+
+<div class="chartbox" id="c1" style="height:420px"></div>
+<div class="note-s">前復權日 K（2026-06-01 至 10-29），藍線 MA10、橙線 MA60。標註：① 10/23 假破位（盤中 22.24、收 23.38）；② 10/25 三季報；③ 10/29 收 23.74。資料來源：騰訊財經 hkfqkline。</div>
+
+<div class="card">
+  <h3 style="margin-top:0">技術指標對照：10/12 vs 10/29</h3>
+  <table>
+    <thead><tr><th>指標</th><th>2026-10-12</th><th>2026-10-29</th><th>變化</th><th>判讀</th></tr></thead>
+    <tbody>
+      <tr><td>收盤價</td><td class="num">25.92</td><td class="num">23.74</td><td class="num dn">−8.4%</td><td>仍在下跌</td></tr>
+      <tr><td>RSI6</td><td class="num">13.13</td><td class="num">36.38</td><td class="num up">+23.3</td><td><strong>超賣已修復</strong></td></tr>
+      <tr><td>MACD 柱</td><td class="num">−0.1728</td><td class="num">+0.3844</td><td class="num up">轉正</td><td><strong>零軸下金叉</strong></td></tr>
+      <tr><td>KDJ 的 J 值</td><td class="num">10.13</td><td class="num">81.78</td><td class="num up">+71.7</td><td><strong>短線反而過熱</strong></td></tr>
+      <tr><td>ATR14（波動）</td><td class="num">4.9%</td><td class="num">4.56%</td><td class="num up">收斂</td><td>但仍高於常態</td></tr>
+      <tr><td>近 30 日真破位</td><td class="num">9 次</td><td class="num">9 次</td><td class="num">—</td><td>仍在破位序列中</td></tr>
+      <tr><td>近 30 日假破位</td><td class="num">0 次</td><td class="num">6 次</td><td class="num up">+6</td><td><strong>10/23 為最近一次</strong></td></tr>
+      <tr><td>距 250 日低</td><td class="num">+1.5%</td><td class="num">+6.7%</td><td class="num">拉開</td><td>暫時離開危險區</td></tr>
+      <tr><td>MA10 / MA20 / MA60</td><td class="num">27.12 / 30.03 / 35.92</td><td class="num">23.83 / 25.48 / 31.26</td><td class="num dn">全線下移</td><td>均線仍完全空頭排列</td></tr>
+    </tbody>
+  </table>
+  <div class="note-s">指標為本地計算（MA／BOLL／RSI／KDJ／MACD／ATR），非引用第三方數值，避免口徑不一致。MA 數值為對應日期之值。</div>
+</div>
+
+<div class="flag"><strong>怎麼讀這張表：</strong>四個「止跌類」指標（RSI 修復、MACD 金叉、ATR 收斂、假破位）都亮綠燈，但兩個「趨勢類」指標（均線排列、破位計數）仍亮紅燈。<strong>止跌 ≠ 反轉，這是兩件事。</strong>而且 KDJ 的 J 值從 10 衝到 81.78，說明短線這波反彈已經走到過熱位置——10/29 的 −2.94% 就是這個過熱的兌現。</div>
+
+<h2>三、核心：假破位的統計審判（這一節推翻我上一輪的假設）</h2>
+
+<div class="card">
+  <p style="margin-top:0">上一份報告（10/12 版）我寫過一句話：<strong>「假破位是唯一被驗證有正 Alpha 的形態」</strong>。那組數字來自 13 個鈾礦／核能標的。</p>
+  <p>這次我把同一套事件定義搬到<strong>鋰礦板塊</strong>：15 個標的（09696、01772、ALB、SQM、LAC、SGML、LIT、PLS.AX、MIN.AX、IGO.AX、LTR.AX、CXO.AX、VUL.AX、PMT.AX、NMT.AX），共 <strong>293 個假破位事件</strong>。</p>
+  <p><strong>結果完全相反。</strong></p>
+  <table>
+    <thead><tr><th>事件（15 鋰礦標的合併）</th><th>n</th><th>T+5 均值</th><th>T+10 均值</th><th>T+20 均值</th><th>T+20 中位</th><th>T+20 勝率</th><th>T+40 均值</th></tr></thead>
+    <tbody>
+      <tr><td><strong>G 假破位</strong></td><td class="num">293</td><td class="num dn">−0.29%</td><td class="num dn">−0.90%</td><td class="num">+0.52%</td><td class="num">0.00%</td><td class="num">49.6%</td><td class="num">+2.57%</td></tr>
+      <tr><td><strong>隨機基準</strong>（每 20 日無條件進場）</td><td class="num">1,362</td><td class="num">—</td><td class="num">—</td><td class="num up"><strong>+2.39%</strong></td><td class="num">+0.02%</td><td class="num">50.0%</td><td class="num">—</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:10px"><strong>看清楚這兩個數字：假破位 T+20 的 +0.52%，比「閉著眼睛每 20 天買一次」的 +2.39% 還差 1.87 個百分點。</strong>勝率 49.6% 也低於隨機的 50.0%。這不是「沒有效」，是「有負效果」。</p>
+  <div class="note-s">隨機基準的構造：每個標的從第 252 根 K 線起，每 20 個交易日無條件以當日收盤進場，取 T+20 報酬。共 1,362 個樣本點。</div>
+</div>
+
+<h3>3.1 把交易成本放進去：所有組合都是負的</h3>
+<div class="chartbox" id="c3" style="height:360px"></div>
+<div class="note-s">路徑模擬：以每個事件自身的收盤價為基準（不寫死進場價），設定上行目標與下行止損，取 20 個交易日內<strong>先觸及哪一邊</strong>；同日同時觸及則保守判為止損。淨期望已扣除來回 0.75% 的交易成本（印花稅 0.10%、佣金約 0.03%、交易費與徵費約 0.011%、滑價）。</div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>止損＼目標</th><th>+8%</th><th>+12%</th><th>+16%</th><th>+20%</th></tr></thead>
+    <tbody>
+      <tr><td>−6%</td><td class="num dn">−1.53%</td><td class="num dn">−1.14%</td><td class="num dn">−1.21%</td><td class="num dn">−1.10%</td></tr>
+      <tr><td>−9%</td><td class="num dn">−1.68%</td><td class="num dn">−1.15%</td><td class="num dn">−1.46%</td><td class="num dn">−1.19%</td></tr>
+      <tr><td>−12%</td><td class="num dn">−1.48%</td><td class="num dn">−1.14%</td><td class="num dn">−1.29%</td><td class="num dn">−0.98%</td></tr>
+      <tr><td>−15%</td><td class="num dn">−0.87%</td><td class="num dn">−0.59%</td><td class="num dn">−0.70%</td><td class="num dn">−0.28%</td></tr>
+    </tbody>
+  </table>
+  <div class="note-s">同一個矩陣套在隨機基準上，最好的格子是 <strong>+0.86%</strong>（−15% 止損 / +20% 目標）、最差 −0.65%（−6% 止損 / +8% 目標）。<strong>也就是說：用假破位進場，比隨機進場差約 1.1 個百分點。</strong></div>
+</div>
+
+<h3>3.2 分年看：這是一個「牛市形態」，不是「底部形態」</h3>
+<div class="chartbox" id="c2" style="height:340px"></div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>年份</th><th>2018</th><th>2019</th><th>2020</th><th>2022</th><th>2023</th><th>2024</th><th>2025</th><th>2026</th></tr></thead>
+    <tbody>
+      <tr><td>T+20 勝率</td><td class="num up">77.3%</td><td class="num">52.2%</td><td class="num up">66.7%</td><td class="num up">100%</td><td class="num dn">41.0%</td><td class="num">51.2%</td><td class="num dn">36.4%</td><td class="num dn">35.0%</td></tr>
+      <tr><td>T+20 均值</td><td class="num up">+4.83%</td><td class="num up">+1.78%</td><td class="num up">+13.01%</td><td class="num up">+13.70%</td><td class="num dn">−2.77%</td><td class="num up">+3.76%</td><td class="num dn">−0.96%</td><td class="num dn">−16.15%</td></tr>
+      <tr><td>樣本數</td><td class="num">22</td><td class="num">23</td><td class="num">12</td><td class="num">8</td><td class="num">78</td><td class="num">80</td><td class="num">33</td><td class="num">20</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:10px"><strong>規律非常清楚：牛市年份（2018、2020、2022、2024）這個形態有效；熊市年份（2023、2025、2026）全部負期望。</strong>而 2026 年的樣本均值是 <strong>−16.15%</strong>、勝率 35%——這是全表最差的一年。</p>
+  <p>原因不難理解：「假破位」本質是<strong>抄底資金的第一次試探</strong>。在牛市裡，試探會得到響應；在熊市裡，試探只是給了下一次真破位的流動性。<strong>它測量的是市場情緒的彈性，不是價值的底部。</strong></p>
+</div>
+
+<h2>四、2026 年已經第 6 次了：這不是訊號，這是常態</h2>
+
+<div class="card">
+  <p style="margin-top:0">把 09696 自己在 2026 年的全部假破位列出來，畫面會非常殘酷：</p>
+  <table>
+    <thead><tr><th>日期</th><th>收盤</th><th>當日最低</th><th>下影佔比</th><th>T+20 報酬</th><th>結果</th></tr></thead>
+    <tbody>
+      <tr><td>2026-09-16</td><td class="num">30.700</td><td class="num">29.200</td><td class="num">94.9%</td><td class="num dn">−20.33%</td><td>失敗</td></tr>
+      <tr><td>2026-09-24</td><td class="num">29.200</td><td class="num">29.080</td><td class="num">9.4%</td><td class="num dn">−17.95%</td><td>失敗</td></tr>
+      <tr><td>2026-09-28</td><td class="num">28.500</td><td class="num">27.980</td><td class="num">63.4%</td><td class="num dn">−14.18%</td><td>失敗</td></tr>
+      <tr><td>2026-10-02</td><td class="num">28.200</td><td class="num">27.620</td><td class="num">49.2%</td><td class="num">—</td><td>樣本不足</td></tr>
+      <tr><td>2026-10-09</td><td class="num">27.460</td><td class="num">26.940</td><td class="num">31.7%</td><td class="num">—</td><td>樣本不足</td></tr>
+      <tr style="background:#fdf0f0"><td><strong>2026-10-23</strong></td><td class="num"><strong>23.380</strong></td><td class="num"><strong>22.240</strong></td><td class="num"><strong>93.4%</strong></td><td class="num">待定</td><td><strong>？</strong></td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:10px"><strong>注意 9/16 那一根：下影 94.9%，和 10/23 的 93.4% 幾乎一模一樣，結果之後 20 天跌了 20.33%。</strong>形態的相似度，與結果的好壞，完全無關。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">最好的反面教材：2024 年 6–9 月</h3>
+  <p style="margin:0">上一輪真正的底部是怎麼形成的？<strong>不是一次假破位，是連續 13 次假破位。</strong></p>
+  <table>
+    <thead><tr><th>期間</th><th>假破位次數</th><th>其中失敗</th><th>第一次的收盤</th><th>底部</th><th>期間跌幅</th></tr></thead>
+    <tbody>
+      <tr><td>2024-06-07 → 2024-09-03</td><td class="num">13 次</td><td class="num dn">11 次</td><td class="num">27.02</td><td class="num">18.52</td><td class="num dn">−31.5%</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:10px">2024-06-07 那天，股價 27.02、出現假破位；之後又出現 10 次假破位、全部失敗，一路跌到 9 月 3 日的 18.52。真正有效的是第 12 次（8/29，T+20 <span class="up">+39.96%</span>）與第 13 次（9/3，T+20 <span class="up">+53.53%</span>）。</p>
+  <div class="warn"><strong>這就是「假破位」的真面目：它是下跌過程中的常態，不是底部的訊號。</strong>它會反覆出現，每次看起來都像底部，直到某一次真的成為底部——而事後你才知道是哪一次。<strong>把它當進場觸發器，等於在下跌趨勢裡反覆接刀。</strong></div>
+</div>
+
+<h2>五、價位結構與觸及概率</h2>
+
+<div class="two">
+  <div class="card">
+    <h3 style="margin-top:0">價位階梯</h3>
+    <div class="ladder">
+      <div class="rung"><div class="px">31.26</div><div class="txt">MA60<span class="pill w">強壓力</span></div></div>
+      <div class="rung"><div class="px">25.48</div><div class="txt">MA20 / 布林中軌<span class="pill m">趨勢分界</span></div></div>
+      <div class="rung"><div class="px">24.84</div><div class="txt">10/28 反彈高點<span class="pill m">短線壓力</span></div></div>
+      <div class="rung"><div class="px">23.83</div><div class="txt">MA10（10/29 得而復失）<span class="pill s">爭奪中</span></div></div>
+      <div class="rung"><div class="px" style="color:#1b5e20">22.24</div><div class="txt"><strong>10/23 低點 / 52 週低</strong><span class="pill s">生死線</span></div></div>
+      <div class="rung"><div class="px">20.25</div><div class="txt">2025-04 低點<span class="pill m">歷史參照</span></div></div>
+      <div class="rung"><div class="px">18.52</div><div class="txt">2024-09 絕對低<span class="pill w">最後防線</span></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">關鍵事實</h3>
+    <ul style="margin:0">
+      <li><strong>上方套牢極重：</strong>近一年成交量中，<strong>99.0%</strong> 發生在現價之上，僅 1.0% 在現價之下。</li>
+      <li><strong>下方是真空：</strong>22.24 之下幾乎沒有近期籌碼，一旦帶量失守，跌幅可能加速。</li>
+      <li><strong>均線完全空頭排列：</strong>23.74 &lt; MA5 24.00 &lt; MA10 23.83 &lt; MA20 25.48 &lt; MA60 31.26 &lt; MA250 43.97。</li>
+      <li><strong>布林下軌 21.72</strong>，與 10/23 低點 22.24 構成一個 21.7–22.2 的下方參考帶。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="chartbox" id="c4" style="height:400px"></div>
+<div class="note-s">從 23.74 出發、20 個交易日內「曾觸及」各價位的概率。藍色為常態分布模擬（近 250 日日均 −0.167%、波動 3.56%，40,000 次路徑）；綠色為歷史經驗 bootstrap（近 500 個交易日實際日收益重抽樣，保留肥尾，40,000 次路徑）。<strong>「曾觸及」不等於「收盤於該價位」。</strong></div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>價位</th><th>方向</th><th>常態模擬</th><th>歷史 bootstrap</th><th>意義</th></tr></thead>
+    <tbody>
+      <tr><td>21.72</td><td>↓</td><td class="num">59.2%</td><td class="num">47.5%</td><td>跌破 10/23 低點</td></tr>
+      <tr><td><strong>22.24</strong></td><td>↓</td><td class="num">68.2%</td><td class="num">57.3%</td><td><strong>回測 52 週低</strong></td></tr>
+      <tr><td>22.99</td><td>↓</td><td class="num">80.6%</td><td class="num">73.1%</td><td>回補 10/29 跌幅</td></tr>
+      <tr><td>24.00</td><td>↑</td><td class="num">77.9%</td><td class="num">82.0%</td><td>重回 MA5 之上</td></tr>
+      <tr><td>25.48</td><td>↑</td><td class="num">47.3%</td><td class="num">53.5%</td><td>挑戰 MA20</td></tr>
+      <tr><td>27.50</td><td>↑</td><td class="num">21.1%</td><td class="num">27.0%</td><td>回到 10/9 水平</td></tr>
+      <tr><td>29.24</td><td>↑</td><td class="num">9.6%</td><td class="num">13.9%</td><td>布林上軌</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:10px"><strong>解讀：</strong>20 日內回測 22.24 的概率（57%–68%）<strong>高於</strong>挑戰 25.48 的概率（47%–54%）。這不是單邊看空，而是「震盪偏下」的幾何——<strong>兩邊都夠遠，但下方更近。</strong></p>
+</div>
+
+<h2>六、基本面：業績暴增，與鋰價崩塌同時發生</h2>
+
+<div class="two">
+  <div class="card">
+    <h3 style="margin-top:0">Q3 業績（10/25 披露）</h3>
+    <table>
+      <tbody>
+        <tr><td>Q3 營業收入</td><td class="num">60.37 億元</td><td class="num up">同比 +135.4%</td></tr>
+        <tr><td>Q3 歸母淨利</td><td class="num">13.60 億元</td><td class="num up">同比 +1324%</td></tr>
+        <tr><td>Q3 淨利（環比）</td><td class="num">—</td><td class="num dn">環比 −42.6%</td></tr>
+        <tr><td>Q3 毛利率</td><td class="num">63.21%</td><td class="num up">仍極高</td></tr>
+        <tr><td>前三季淨利</td><td class="num">56.02 億元</td><td class="num up">同比 +3014%</td></tr>
+        <tr><td>Q3 EPS vs 預期</td><td class="num">0.92</td><td class="num dn">低於預期 1.11</td></tr>
+      </tbody>
+    </table>
+    <div class="note-s">前三季淨利 56.02 億元，已是 2025 全年（4.63 億元）的 12 倍。毛利率 63.21% 說明一體化成本優勢仍在——天齊是這輪裡「最後才會虧錢」的那一類。</div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">碳酸鋰：供應端在加速</h3>
+    <ul style="margin:0">
+      <li><strong>價格：</strong>主力 2701 合約 10/28 收 <strong>93,300 元/噸（−4.64%）</strong>；電池級現貨 98,900 元/噸（−1,500）。10/23 低點 90,880，10/27 高點 99,880。</li>
+      <li><strong>復產提前：</strong>宜春枧下窩（停產前佔全國產量 8–10%）環評公示 10/22 發布、10/28 截止，市場預期復產從「11 月下旬–12 月」<strong>提前到 11 月初</strong>。</li>
+      <li><strong>進口放量：</strong>10 月澳洲鋰輝石到港 <strong>665,243 噸，同比 +35.88%</strong>。</li>
+      <li><strong>需求轉弱：</strong>11 月國內鋰電排產約 323GWh，<strong>環比 −5%</strong>，「旺季不旺」。</li>
+      <li><strong>去庫放緩：</strong>週均去庫從 9 月的 1,500 噸降到 10 月的約 500 噸；冶煉廠庫存反而環比 +634 噸。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="flag"><strong>把兩邊放一起看，矛盾就清楚了：</strong>Q3 的 13.60 億是「過去式」，而且環比已經 −42.6%；Q4 面對的是碳酸鋰再跌 19,500 元/噸的季度均價（大摩估算），以及 11 月排產環比轉負。<strong>市場賣的不是這一季的利潤，是下一季的斜率。</strong>這也解釋了為什麼財報後只漲了兩天。</div>
+
+<h2>七、估值與分析師分歧：2 倍的價差</h2>
+
+<div class="card">
+  <table>
+    <thead><tr><th>機構</th><th>評級</th><th>目標價（港元）</th><th>相對現價</th><th>日期</th><th>核心邏輯</th></tr></thead>
+    <tbody>
+      <tr><td>高盛</td><td class="dn">賣出</td><td class="num">22.00</td><td class="num dn">−7.3%</td><td>10/07</td><td>鋰價今年見頂、明年回落；2026–28 盈利 +14% / +45% / −62%</td></tr>
+      <tr><td>摩根大通</td><td>中性</td><td class="num">25.00</td><td class="num up">+5.3%</td><td>10/12</td><td>估值合理，等待鋰價方向</td></tr>
+      <tr><td>摩根士丹利</td><td class="up">增持</td><td class="num">44.30</td><td class="num up">+86.6%</td><td>10/22</td><td>Q3 符合預期；但承認 Q4 逆風延續</td></tr>
+      <tr><td>市場共識（14–15 家）</td><td class="up">買入</td><td class="num">52.56</td><td class="num up">+121%</td><td>—</td><td>含較多舊報告，參考價值有限</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:10px"><strong>最高與最低目標價差 2 倍（22 vs 44.3），這本身就是一個訊號：連賣方都無法對「鋰價會在哪裡止跌」形成共識。</strong>而共識均價 52.56 明顯滯後——它包含了 7 月以前的報告，不能當作當下的判斷。</p>
+  <p><strong>估值上確實便宜：</strong>H 股 23.74 港元 ≈ 20.16 元人民幣，對 2026 年預測 EPS 4.19 元，<strong>預測 PE 約 4.8 倍</strong>；2027 年預測 EPS 3.79 元，PE 約 5.3 倍。<strong>但這是「週期股在盈利高點看起來很便宜」的典型陷阱</strong>——高盛預測 2028 年盈利 −62%，就是這個意思。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">A/H 折價 42.3%</h3>
+  <p style="margin:0">A 股 34.91 元人民幣 ≈ 41.12 港元（HKD/CNY = 0.8489），H 股 23.74 港元，<strong>H 股相對 A 股折價 42.3%</strong>。</p>
+  <p style="margin:8px 0 0"><strong>但這不構成買入理由。</strong>這個折價是長期結構性的（H 股流動性、外資持股、匯率預期），2026 年全年大致在 35%–45% 區間波動，目前只是落在區間中上部，並非極端。</p>
+</div>
+
+<h2>八、與同業對照：它是中段班，不是最慘的</h2>
+
+<div class="chartbox" id="c5" style="height:380px"></div>
+<div class="note-s">2026-09-11 至 2026-10-29 的區間漲跌幅。09696 為 −25.39%，在 12 個標的中排第 6——優於 VUL（−44.5%）、PLS（−39.2%）、LTR（−37.4%）、CXO（−34.8%）、IGO（−30.7%），劣於 MIN、ALB、SQM、SGML、LIT。資料來源：Yahoo Finance（美股／澳股）、騰訊財經（港股）。</div>
+
+<div class="card">
+  <p style="margin:0"><strong>這是一個重要的背景板：整個板塊在跌，不是它一家的事。</strong>過去 120 個交易日，09696 與 PLS.AX 的日收益相關係數為 <strong>+0.557</strong>、與 LIT（鋰電 ETF）為 <strong>+0.549</strong>，beta 分別 0.47 與 0.91。<strong>它有一半以上的波動來自板塊與商品，而不是自身經營。</strong>所以「等它自己築底」這個思路本身就有問題——<strong>要先等碳酸鋰築底。</strong></p>
+</div>
+
+<h2>九、結論與驗證點</h2>
+
+<div class="card">
+  <h3 style="margin-top:0">我的判斷，分三層</h3>
+  <p><strong>第一層（形態）：</strong>10/23 的假破位是真實的，下影 93.4%、收盤拉回前低之上，<strong>22.24 是一個有效的支撐標記</strong>。但它成交僅 1.06 倍均量，缺乏恐慌性放量的確認。</p>
+  <p><strong>第二層（統計）：</strong>這個形態在鋰礦板塊的 293 個樣本上<strong>沒有 Alpha，而且是負期望</strong>；在 2026 年的 20 個樣本上更是 T+20 均值 −16.15%。<strong>它不能作為進場觸發器。</strong></p>
+  <p><strong>第三層（基本面）：</strong>Q3 業績很強但已是過去式，Q4 面對的是更低的鋰價與轉弱的排產；供應端（復產提前＋進口放量）還在惡化。<strong>沒有任何一個變量已經轉向。</strong></p>
+  <p style="margin-bottom:0"><strong>所以：現在（23.74）不是進場位置。22.24 是觀察線，不是買點。</strong>如果一定要參與，正確的做法是「等確認」而不是「猜底部」——確認的對象是碳酸鋰，不是 K 線。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">三個必須盯的驗證點</h3>
+  <table>
+    <thead><tr><th>#</th><th>觀察對象</th><th>具體門檻</th><th>意義</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>碳酸鋰主力 2701</strong></td><td>收復 <strong>100,000 元/噸</strong>並站穩 3 日</td><td>唯一的領先變量。它不動，股價的任何反彈都是假的</td></tr>
+      <tr><td>2</td><td><strong>22.24 的防守質量</strong></td><td>回測時<strong>縮量</strong>且收盤守住；或帶量跌破後 2 日內收回</td><td>縮量回踩＝籌碼穩定；放量失守＝進入無人區</td></tr>
+      <tr><td>3</td><td><strong>枧下窩復產落地</strong></td><td>11 月初正式公告復產，股價<strong>不跌</strong></td><td>「利空落地不跌」是最可靠的築底訊號之一</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:10px"><strong>失效線同樣清楚：22.24 帶量失守，本報告全部支撐結論作廢。</strong>下一個歷史參照是 20.25（2025-04 低點），再往下是 18.52（2024-09 絕對低）——那是 -14.7% 與 -22.0% 的空間。</p>
+</div>
+
+<div class="card">
+  <h3 style="margin-top:0">如果堅持要參與：倉位算術</h3>
+  <p style="margin:0 0 8px">以 23.74 進場、止損設在 22.24 之下（約 21.90，−7.7%，約 1.7 倍 ATR）：</p>
+  <table>
+    <thead><tr><th>總資金</th><th>單筆風險 1.5%</th><th>每股風險</th><th>每手 200 股風險</th><th>可買手數</th><th>名義市值</th></tr></thead>
+    <tbody>
+      <tr><td>10 萬港元</td><td class="num">1,500</td><td class="num">1.84</td><td class="num">368</td><td class="num">3 手</td><td class="num">14,244</td></tr>
+      <tr><td>50 萬港元</td><td class="num">7,500</td><td class="num">1.84</td><td class="num">368</td><td class="num">20 手</td><td class="num">94,960</td></tr>
+    </tbody>
+  </table>
+  <div class="note-s">每手 200 股（09696 買賣單位，下單前請與券商確認）。止損 −7.7% 對應約 1.7 倍 ATR（ATR 4.56%），在噪音範圍之外但不至於太寬。<strong>提醒：在負期望的訊號上做倉位管理，只是把虧損的速度調慢，不會把期望變正。</strong></div>
+</div>
+
+<h2>十、局限與方法說明</h2>
+
+<div class="card">
+  <ul style="margin:0">
+    <li><strong>樣本來自板塊，不是個股。</strong>293 個事件是 15 個鋰礦標的的合併樣本，給的是「產業平均」。09696 的一體化成本優勢、A/H 雙重上市結構都與純礦股不同，實際表現可能偏離。</li>
+    <li><strong>時期偏差明顯且方向不利。</strong>2023、2025、2026 三個年份的勝率分別 41.0%、36.4%、35.0%，都低於 50%。若當前環境更接近這三年，全樣本的 49.6% 是偏樂觀的。</li>
+    <li><strong>事件定義敏感。</strong>「假破位」的判定依賴 250 日前低的窗口長度與「收盤 vs 盤中」的口徑。改窗口長度會改變事件數量與結論。</li>
+    <li><strong>觸及概率是模擬值，不是預測。</strong>常態模擬假設收益近似正態（低估肥尾）；bootstrap 保留了近 500 日的實際分布，但仍是「過去 500 日會重演」的假設。</li>
+    <li><strong>未計入的外生變數：</strong>11 月排產的最終落地、枧下窩復產的實際時點與產量、A 股情緒與南向資金流向、美元與人民幣匯率、可能的收儲或政策干預。</li>
+    <li><strong>數據時點：</strong>港股 2026-10-29 收盤（16:08）；碳酸鋰為 10/28 收盤；財務數據為 10/25 披露的三季報。</li>
+    <li><strong>方法修正紀錄：</strong>本報告推翻了 10/12 版「假破位是唯一有正 Alpha 的形態」的結論。該結論來自鈾礦板塊，跨板塊不成立。<strong>這是方法論本身的價值——它讓我能夠推翻自己。</strong></li>
+  </ul>
+</div>
+
+<footer>
+  <div class="src"><strong>主要來源：</strong>騰訊財經 hkfqkline／qt.gtimg.cn（港股日 K 與實時報價）、Yahoo Finance（美股與澳股日 K）、天齊鋰業 2026 年三季報（2026-10-25 披露）、智通財經（大摩研報摘要，2026-10-22）、Investing.com（分析師目標價彙總，含高盛 22.00、摩根大通 25.00）、證券時報（碳酸鋰期價報導，2026-10-28）、華泰期貨／SMM（碳酸鋰日報與庫存數據，2026-10-28）、卓創資訊（鋰輝石到港數據）。</div>
+  <p style="margin-top:12px"><strong>免責聲明：</strong>以上內容基於公開數據和量化分析，僅供參考，不構成投資建議。文中所有概率均為歷史統計推導值或模擬值，「曾觸及」不等於「收盤於該價位」，不構成對未來表現的承諾或保證。本報告的統計數字主要來自 15 個標的的合併樣本平移，非 09696 單一標的實測，並存在 2023–2026 年勝率低於 50% 的時期偏差。市場有風險，投資需謹慎。任何投資決策應結合個人風險承受能力、資金狀況和投資目標獨立判斷，必要時諮詢持牌專業機構。過往表現不預示未來收益。</p>
+</footer>
+
+</div>
+
+<script>
+var D=["2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05","2026-06-08","2026-06-09","2026-06-10","2026-06-11","2026-06-12","2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-22","2026-06-23","2026-06-24","2026-06-25","2026-06-26","2026-06-29","2026-06-30","2026-07-02","2026-07-03","2026-07-06","2026-07-07","2026-07-08","2026-07-09","2026-07-10","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-27","2026-07-28","2026-07-29","2026-07-30","2026-07-31","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-31","2026-09-01","2026-09-02","2026-09-03","2026-09-04","2026-09-07","2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-28","2026-09-29","2026-09-30","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26","2026-10-27","2026-10-28","2026-10-29"];
+var K=[[49.08,49.04,48.6,50.9],[49.0,48.24,47.0,49.0],[47.78,47.5,46.62,48.1],[47.1,45.76,45.22,47.48],[45.7,43.78,43.72,46.18],[42.58,43.04,42.18,44.22],[43.36,44.9,42.64,46.4],[45.0,43.76,42.68,45.98],[43.02,44.72,42.8,46.0],[45.74,47.5,44.9,47.98],[48.9,48.3,47.02,49.62],[48.06,46.94,46.62,48.24],[47.48,46.44,46.16,48.5],[46.5,43.8,42.88,46.5],[42.18,44.76,41.4,45.1],[44.64,42.34,41.82,45.2],[42.34,43.32,41.5,44.5],[43.36,41.42,40.84,43.8],[41.3,38.64,38.38,41.62],[38.86,39.6,38.48,40.4],[39.42,40.18,39.42,41.6],[41.2,39.5,39.16,41.2],[40.5,40.3,40.0,41.3],[40.3,40.7,39.94,42.4],[41.0,39.54,39.02,41.88],[39.1,36.36,36.08,39.5],[36.36,35.22,34.14,36.66],[34.8,33.74,33.6,35.5],[33.8,33.08,32.58,33.8],[33.4,34.16,32.34,34.16],[35.44,33.2,33.0,35.44],[33.2,33.68,32.12,34.8],[33.7,32.46,31.82,34.6],[32.78,30.88,30.5,32.86],[30.84,32.0,30.24,32.18],[32.2,32.18,31.6,32.88],[32.86,34.42,32.38,35.16],[34.34,32.94,32.66,34.34],[33.1,33.32,32.74,33.9],[33.36,32.34,31.86,33.68],[32.7,33.88,32.1,34.6],[34.0,33.26,32.82,34.96],[34.48,33.42,32.92,34.48],[33.42,34.04,32.58,34.36],[34.04,35.3,33.96,35.62],[35.98,36.34,35.18,36.38],[36.4,35.46,34.92,36.56],[35.72,35.78,35.22,36.36],[36.3,36.76,36.22,37.86],[36.94,35.92,35.74,36.94],[35.92,36.68,35.78,37.24],[36.22,35.28,35.04,36.4],[35.54,35.68,35.02,36.46],[36.1,36.16,35.6,36.46],[36.44,35.1,34.66,36.92],[34.6,34.1,33.82,34.8],[34.64,33.74,33.6,35.0],[34.0,37.7,33.96,37.8],[38.24,38.2,37.8,40.12],[37.6,36.34,35.88,37.98],[36.08,36.44,35.68,37.66],[36.88,36.96,36.1,37.2],[38.88,38.2,37.28,38.94],[38.1,37.86,37.4,38.8],[38.18,37.58,37.3,38.88],[37.2,36.5,35.62,37.2],[36.8,36.2,36.18,37.84],[36.56,34.5,34.4,36.64],[34.5,34.56,33.84,35.24],[35.0,34.76,34.62,35.18],[34.66,34.92,34.26,35.1],[34.68,33.66,33.56,34.68],[32.68,31.82,30.66,32.78],[31.72,31.78,31.26,32.74],[31.7,30.14,30.1,31.7],[30.06,30.7,29.2,30.78],[30.6,30.7,30.04,31.06],[30.98,31.22,30.42,31.28],[31.3,31.7,30.96,31.82],[31.56,30.86,30.8,31.56],[31.1,30.6,30.44,31.1],[30.12,29.2,29.08,30.36],[29.06,28.78,28.3,29.06],[28.5,28.5,27.98,28.8],[28.96,28.58,28.26,28.98],[28.66,28.68,28.12,28.78],[28.8,28.2,27.62,28.8],[28.2,27.92,27.62,28.2],[28.0,27.96,27.7,28.14],[28.1,27.36,27.24,28.12],[27.64,27.22,27.22,28.7],[27.44,27.46,26.94,28.58],[27.16,25.92,25.66,27.44],[25.38,25.34,24.7,25.74],[25.32,25.16,25.06,26.28],[24.8,24.46,24.24,24.8],[24.8,23.9,23.76,24.9],[23.78,23.7,23.3,24.28],[24.3,23.54,23.32,24.36],[23.48,22.68,22.52,23.48],[22.38,23.38,22.24,23.46],[23.72,23.96,23.24,24.38],[24.66,24.48,24.18,24.8],[24.7,24.46,24.34,24.84],[24.22,23.74,23.68,24.42]];
+var M10=[51.55,50.95,50.46,49.65,48.81,47.9,47.24,46.52,45.98,45.82,45.75,45.62,45.51,45.32,45.42,45.35,45.19,44.95,44.35,43.56,42.74,42.0,41.39,41.08,40.55,39.96,39.15,38.38,37.82,37.28,36.58,36.0,35.21,34.23,33.48,33.06,32.98,32.9,32.92,32.74,32.81,32.77,32.86,33.18,33.51,33.93,34.03,34.31,34.66,35.02,35.3,35.5,35.72,35.94,35.92,35.69,35.52,35.71,35.86,35.9,35.87,36.04,36.29,36.46,36.71,36.95,37.2,36.88,36.51,36.36,36.2,35.87,35.24,34.63,33.88,33.3,32.75,32.43,32.14,31.75,31.32,30.87,30.57,30.24,30.08,29.88,29.63,29.3,28.93,28.58,28.24,28.07,27.78,27.46,27.12,26.7,26.27,25.85,25.41,24.94,24.55,24.2,24.06,23.97,23.83];
+var M60=[51.86,51.95,52.03,52.07,52.08,52.08,52.09,52.08,52.1,52.17,52.25,52.34,52.43,52.49,52.56,52.6,52.62,52.56,52.46,52.32,52.19,52.09,52.0,51.9,51.74,51.52,51.27,50.94,50.54,50.22,49.83,49.41,48.98,48.52,48.07,47.65,47.22,46.79,46.37,45.86,45.32,44.74,44.21,43.66,43.13,42.7,42.25,41.83,41.45,41.09,40.79,40.47,40.19,39.9,39.61,39.31,39.02,38.8,38.6,38.39,38.18,37.99,37.83,37.7,37.6,37.49,37.34,37.19,37.02,36.81,36.58,36.36,36.12,35.92,35.68,35.48,35.27,35.1,34.99,34.84,34.68,34.51,34.32,34.11,33.93,33.8,33.69,33.59,33.5,33.39,33.29,33.19,33.08,32.99,32.87,32.74,32.57,32.41,32.25,32.09,31.91,31.76,31.61,31.45,31.26];
+
+var chart1 = echarts.init(document.getElementById('c1'));
+chart1.setOption({
+  animation: false,
+  tooltip: { trigger: 'axis', axisPointer: { type: 'cross' }, backgroundColor:'#fff', borderColor:'#e3e7ec', textStyle:{color:'#1b2430',fontSize:12} },
+  legend: { data: ['K線','MA10','MA60'], top: 0, textStyle:{fontSize:12,color:'#5a6673'} },
+  grid: { left: 52, right: 20, top: 34, bottom: 46 },
+  xAxis: { type: 'category', data: D, axisLabel: { fontSize: 10, color: '#8b95a1', interval: 14 }, axisLine:{lineStyle:{color:'#e3e7ec'}} },
+  yAxis: { scale: true, min: 20, max: 55, splitLine:{lineStyle:{color:'#f0f2f5'}}, axisLabel:{fontSize:11,color:'#8b95a1'} },
+  dataZoom: [{ type:'inside', start:0, end:100 }],
+  series: [
+    { name:'K線', type:'candlestick', data: K,
+      itemStyle:{ color:'#c62828', color0:'#2e7d32', borderColor:'#c62828', borderColor0:'#2e7d32' },
+      markPoint: { symbolSize: 52, label:{fontSize:10,color:'#fff'}, data:[
+        { name:'假破位', coord:['2026-10-23', 22.24], value:'假破位', itemStyle:{color:'#2e7d32'} }
+      ]},
+      markLine: { symbol:'none', silent:true, label:{fontSize:10,color:'#5a6673',formatter:'{b}'}, data:[
+        { yAxis: 22.24, lineStyle:{color:'#1b5e20',type:'dashed',width:1.5}, label:{formatter:'22.24 關鍵'} },
+        { yAxis: 23.83, lineStyle:{color:'#8b95a1',type:'dotted'}, label:{formatter:'MA10'} },
+        { yAxis: 25.48, lineStyle:{color:'#b26a00',type:'dashed'}, label:{formatter:'MA20'} }
+      ]}
+    },
+    { name:'MA10', type:'line', data: M10, smooth:true, symbol:'none', lineStyle:{width:1.5,color:'#1a5fb4'} },
+    { name:'MA60', type:'line', data: M60, smooth:true, symbol:'none', lineStyle:{width:1.5,color:'#d17a00'} }
+  ]
+});
+
+var years = ['2018','2019','2020','2022','2023','2024','2025','2026'];
+var wr = [77.3, 52.2, 66.7, 100.0, 41.0, 51.2, 36.4, 35.0];
+var ns = [22, 23, 12, 8, 78, 80, 33, 20];
+var chart2 = echarts.init(document.getElementById('c2'));
+chart2.setOption({
+  animation: false,
+  tooltip: { trigger:'axis', backgroundColor:'#fff', borderColor:'#e3e7ec', textStyle:{color:'#1b2430',fontSize:12},
+    formatter: function(p){ var i=p[0].dataIndex; return years[i]+' 年<br/>T+20 勝率：'+wr[i]+'%<br/>樣本數：'+ns[i]; } },
+  grid: { left: 52, right: 20, top: 24, bottom: 34 },
+  xAxis: { type:'category', data: years, axisLabel:{fontSize:12,color:'#5a6673'}, axisLine:{lineStyle:{color:'#e3e7ec'}} },
+  yAxis: { type:'value', max: 100, axisLabel:{formatter:'{value}%',fontSize:11,color:'#8b95a1'}, splitLine:{lineStyle:{color:'#f0f2f5'}} },
+  series: [{
+    type:'bar', data: wr, barWidth:'52%',
+    itemStyle: { color: function(p){ return p.value >= 50 ? '#b26a00' : '#2e7d32'; } },
+    label: { show:true, position:'top', formatter: function(p){ return p.value + '%'; }, fontSize:11, color:'#5a6673' },
+    markLine: { symbol:'none', silent:true, lineStyle:{color:'#8b95a1',type:'dashed'},
+      data:[{ yAxis:50, label:{formatter:'50% 生死線',fontSize:10,color:'#8b95a1'} }] }
+  }]
+});
+
+var stops = ['−6%','−9%','−12%','−15%'];
+var t8  = [-1.53,-1.68,-1.48,-0.87];
+var t12 = [-1.14,-1.15,-1.14,-0.59];
+var t16 = [-1.21,-1.46,-1.29,-0.70];
+var t20 = [-1.10,-1.19,-0.98,-0.28];
+var chart3 = echarts.init(document.getElementById('c3'));
+chart3.setOption({
+  animation: false,
+  tooltip: { trigger:'axis', backgroundColor:'#fff', borderColor:'#e3e7ec', textStyle:{color:'#1b2430',fontSize:12},
+    valueFormatter: function(v){ return v.toFixed(2) + '%'; } },
+  legend: { data:['目標 +8%','目標 +12%','目標 +16%','目標 +20%'], top:0, textStyle:{fontSize:12,color:'#5a6673'} },
+  grid: { left: 56, right: 20, top: 34, bottom: 34 },
+  xAxis: { type:'category', data: stops, name:'止損寬度', nameTextStyle:{fontSize:11,color:'#8b95a1'}, axisLabel:{fontSize:12,color:'#5a6673'}, axisLine:{lineStyle:{color:'#e3e7ec'}} },
+  yAxis: { type:'value', max: 0, min: -2, axisLabel:{formatter:'{value}%',fontSize:11,color:'#8b95a1'}, splitLine:{lineStyle:{color:'#f0f2f5'}} },
+  series: [
+    { name:'目標 +8%',  type:'bar', data:t8,  itemStyle:{color:'#1b5e20'} },
+    { name:'目標 +12%', type:'bar', data:t12, itemStyle:{color:'#2e7d32'} },
+    { name:'目標 +16%', type:'bar', data:t16, itemStyle:{color:'#66a06a'} },
+    { name:'目標 +20%', type:'bar', data:t20, itemStyle:{color:'#a5c9a8'} }
+  ]
+});
+
+var lv = ['21.72','22.24','22.99','24.00','25.48','27.50','29.24'];
+var normal = [59.2,68.2,80.6,77.9,47.3,21.1,9.6];
+var boot = [47.5,57.3,73.1,82.0,53.5,27.0,13.9];
+var chart4 = echarts.init(document.getElementById('c4'));
+chart4.setOption({
+  animation: false,
+  tooltip: { trigger:'axis', axisPointer:{type:'shadow'}, backgroundColor:'#fff', borderColor:'#e3e7ec', textStyle:{color:'#1b2430',fontSize:12},
+    valueFormatter: function(v){ return v.toFixed(1) + '%'; } },
+  legend: { data:['常態模擬','歷史 bootstrap'], top:0, textStyle:{fontSize:12,color:'#5a6673'} },
+  grid: { left: 70, right: 60, top: 34, bottom: 30 },
+  xAxis: { type:'value', max: 100, axisLabel:{formatter:'{value}%',fontSize:11,color:'#8b95a1'}, splitLine:{lineStyle:{color:'#f0f2f5'}} },
+  yAxis: { type:'category', data: lv, axisLabel:{fontSize:12,color:'#5a6673'}, axisLine:{lineStyle:{color:'#e3e7ec'}}, inverse: true },
+  series: [
+    { name:'常態模擬', type:'bar', data: normal, itemStyle:{color:'#1a5fb4'},
+      label:{show:true,position:'right',formatter:'{c}%',fontSize:11,color:'#5a6673'} },
+    { name:'歷史 bootstrap', type:'bar', data: boot, itemStyle:{color:'#2e7d32'},
+      label:{show:true,position:'right',formatter:'{c}%',fontSize:11,color:'#5a6673'} }
+  ]
+});
+
+var peers = ['VUL.AX','PLS.AX','LTR.AX','CXO.AX','IGO.AX','LAC','09696.HK','MIN.AX','ALB','SQM','SGML','LIT'];
+var pv = [-44.51,-39.16,-37.38,-34.78,-30.74,-25.43,-25.39,-24.44,-17.49,-15.66,-12.63,-12.31];
+var chart5 = echarts.init(document.getElementById('c5'));
+chart5.setOption({
+  animation: false,
+  tooltip: { trigger:'axis', axisPointer:{type:'shadow'}, backgroundColor:'#fff', borderColor:'#e3e7ec', textStyle:{color:'#1b2430',fontSize:12},
+    valueFormatter: function(v){ return v.toFixed(2) + '%'; } },
+  grid: { left: 84, right: 60, top: 18, bottom: 30 },
+  xAxis: { type:'value', min: -50, max: 0, axisLabel:{formatter:'{value}%',fontSize:11,color:'#8b95a1'}, splitLine:{lineStyle:{color:'#f0f2f5'}} },
+  yAxis: { type:'category', data: peers, axisLabel:{fontSize:11.5,color:'#5a6673'}, axisLine:{lineStyle:{color:'#e3e7ec'}}, inverse: true },
+  series: [{
+    type:'bar', data: pv.map(function(v,i){ return { value:v, itemStyle:{ color: peers[i]==='09696.HK' ? '#1a5fb4' : '#2e7d32' } }; }),
+    label: { show:true, position:'right', formatter: function(p){ return p.value.toFixed(1) + '%'; }, fontSize:11, color:'#5a6673' }
+  }]
+});
+
+window.addEventListener('resize', function(){
+  chart1.resize(); chart2.resize(); chart3.resize(); chart4.resize(); chart5.resize();
+});
+</script>
+</body>
+</html>

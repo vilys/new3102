@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09696 天齊鋰業｜「有底了嗎？」破位下跌的事件研究與賠率檢驗</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --ink:#1b2430; --ink2:#5a6673; --ink3:#8b95a1;
+    --line:#e3e7ec; --up:#c62828; --dn:#2e7d32; --amber:#b26a00; --blue:#1a5fb4;
+    --upbg:#fdf0f0; --dnbg:#eef6ef; --amdbg:#fdf6e8; --bluebg:#eef4fc;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+       font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;}
+  h1{font-size:25px;margin:0 0 6px;letter-spacing:-.4px;}
+  .sub{color:var(--ink2);font-size:13.5px;}
+  h2{font-size:18px;margin:34px 0 12px;padding-left:10px;border-left:4px solid var(--ink);letter-spacing:-.2px;}
+  h3{font-size:15px;margin:20px 0 8px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px;}
+  .verdict{border-left:5px solid var(--dn);background:var(--dnbg);border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+  .verdict .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.5px;
+    background:var(--dn);color:#fff;padding:2px 9px;border-radius:4px;margin-bottom:9px;}
+  .verdict p{margin:7px 0;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;margin-bottom:18px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:13px 14px;}
+  .kpi .lbl{font-size:11.5px;color:var(--ink3);letter-spacing:.3px;margin-bottom:5px;}
+  .kpi .val{font-size:20px;font-weight:700;letter-spacing:-.5px;}
+  .kpi .note{font-size:11.5px;color:var(--ink3);margin-top:3px;}
+  .up{color:var(--up);} .dn{color:var(--dn);} .amb{color:var(--amber);} .blu{color:var(--blue);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0 4px;}
+  th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{background:#eef0f3;font-weight:600;color:var(--ink2);font-size:12.5px;border-bottom:1.5px solid #d5dae0;}
+  tbody tr:hover{background:#fafbfc;}
+  .num{font-variant-numeric:tabular-nums;}
+  .chartbox{margin:6px 0 4px;}
+  .note-s{font-size:12px;color:var(--ink3);margin-top:8px;line-height:1.65;}
+  .ladder{position:relative;padding:6px 0;}
+  .rung{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #e8ebef;}
+  .rung:last-child{border-bottom:none;}
+  .rung .px{width:150px;font-weight:700;font-variant-numeric:tabular-nums;font-size:13.5px;flex:none;}
+  .rung .txt{font-size:12.5px;color:var(--ink2);}
+  .pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;font-weight:600;}
+  .pill.s{background:var(--dnbg);color:var(--dn);}
+  .pill.r{background:var(--upbg);color:var(--up);}
+  .pill.n{background:#eef0f3;color:var(--ink2);}
+  ul{margin:8px 0 8px 18px;padding:0;} li{margin:5px 0;}
+  .veto{border-left:4px solid var(--dn);background:var(--dnbg);padding:12px 16px;border-radius:8px;margin:10px 0;}
+  .veto b{color:var(--dn);}
+  .warn{border-left:4px solid var(--up);background:var(--upbg);padding:12px 16px;border-radius:8px;margin:10px 0;}
+  .warn b{color:var(--up);}
+  .corr{border-left:4px solid var(--blue);background:var(--bluebg);padding:12px 16px;border-radius:8px;margin:10px 0;}
+  .corr b{color:var(--blue);}
+  .src{font-size:12.5px;color:var(--ink2);}
+  .disc{margin-top:26px;padding:14px 18px;background:#eef0f3;border-radius:9px;font-size:12.5px;color:var(--ink2);line-height:1.7;}
+  code{background:#eef0f3;padding:1px 5px;border-radius:3px;font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>09696 天齊鋰業（H 股）｜「有底了嗎？」</h1>
+  <div class="sub">破位下跌的事件研究、支撐結構與賠率檢驗 ｜ 數據截至 2026-10-12 港股盤中 ｜ 前復權 ｜ 方法沿用 01164 報告</div>
+</header>
+
+<div class="verdict">
+  <span class="tag">結論先行（偏空）</span>
+  <p><b>它現在不是「有底」的狀態，而是「正在破位下行」的狀態。</b>把 01164 用過的同一套方法搬過來，四項形態指標<b>全部給出否定答案</b>：沒有假破位（是真破位）、沒有底背離、MACD 綠柱還在擴大、ATR 沒有收斂。</p>
+  <p><b>最硬的一組數字：</b>收盤創 250 日新低之後，<b>20 個交易日內繼續創新低的概率是 83.5%</b>（T+5 為 68.0%、T+10 為 77.8%，n=273）。</p>
+  <p><b>統計期望為負：</b>在 13 個鋰礦標的、273 個「創 250 日新低」樣本上，扣掉 0.75% 交易成本後的 T+20 淨期望落在 <b>−0.33% ~ −0.97%</b>；而「什麼都不看」的隨機基準是 <b>+0.64%</b>。<b>「創新高低」與「極度超賣」在鋰礦板塊上是負期望事件，不是進場理由。</b></p>
+  <p><b>最有說服力的歷史對照：</b>2024-04-24，天齊收 27.02、RSI6 = 9.9、創 250 日新低——和今天（26.22、RSI6 = 13.1、創 250 日新低）幾乎是同一個狀態。<b>那天之後，它又跌了 31% 才見底。</b></p>
+  <p><b>但並非沒有希望：</b>當前 26.22 位於上一輪築底區（18.52–34.50）的 <b>48.2% 分位</b>，下方仍有明確的歷史參照。真正的機會區域在 <b>20–23 港元</b>——那是 2025 年的兩次低點、上一輪磨底區下沿，與高盛目標價 22 港元詭異地重合。</p>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="lbl">現價（10/12 盤中）</div><div class="val num">26.220</div><div class="note dn">−4.52%</div></div>
+  <div class="kpi"><div class="lbl">52 週低</div><div class="val num dn">26.000</div><div class="note">今日創下</div></div>
+  <div class="kpi"><div class="lbl">距 2026 高點</div><div class="val num dn">−62.1%</div><div class="note">高點 69.15（5/04）</div></div>
+  <div class="kpi"><div class="lbl">RSI6</div><div class="val num dn">13.1</div><div class="note">深度超賣</div></div>
+  <div class="kpi"><div class="lbl">近 30 日創 250 日新低</div><div class="val num dn">9 次</div><div class="note">持續破位</div></div>
+  <div class="kpi"><div class="lbl">H/A 折價</div><div class="val num blu">40.0%</div><div class="note">A 股 39.94 元</div></div>
+</div>
+
+<h2>一、它和 01164 是兩種完全不同的物種</h2>
+<div class="card">
+<p>同樣的方法，搬過來第一個發現就是：<b>兩者的「狀態」根本不同。</b>01164 是在前低附近反覆測試（探底）；09696 是收盤價持續創新低（還在跌）。這決定了事件定義與結論都會相反。</p>
+<table>
+<thead><tr><th>維度</th><th>01164 中廣核礦業（9–10 月）</th><th>09696 天齊鋰業（10 月）</th></tr></thead>
+<tbody>
+<tr><td>破位方式</td><td class="up">假破位（盤中破、收盤收回）</td><td class="dn"><b>真破位（收盤持續創新低）</b></td></tr>
+<tr><td>底背離</td><td class="up">有（RSI6 17.1→32.3→40.5）</td><td class="dn"><b>無（RSI 隨價同步走低）</b></td></tr>
+<tr><td>MACD</td><td class="up">零軸下金叉（hist 轉正）</td><td class="dn"><b>綠柱擴大（−0.1152 → −0.1728）</b></td></tr>
+<tr><td>ATR（波動）</td><td class="up">收斂（8.02% → 6.06%）</td><td class="amb">平穩（4.7%，無收斂）</td></tr>
+<tr><td>近 30 日創 250 日新低</td><td class="up">0 次</td><td class="dn"><b>9 次</b></td></tr>
+<tr><td>均線排列</td><td>空頭，但價格反覆爭奪</td><td class="dn"><b>空頭，MA10 單調下移無抵抗</b></td></tr>
+</tbody>
+</table>
+<div class="chartbox" id="c1" style="height:420px"></div>
+<div class="note-s">上圖：收盤價、MA10、MA60（左軸）與 RSI6（右軸）。注意 6 月以來 <b>MA10 與 MA60 斜率幾乎沒有走平過</b>，RSI6 每次下滑都與價格同步——<b>這是單邊趨勢的形狀，不是築底的形狀</b>。對照 01164 的圖（收盤在 2.07 附近橫盤兩個月、RSI 逐級抬高），差別一目瞭然。</div>
+</div>
+
+<h2>二、四條證據都說「還沒有底」</h2>
+<div class="card">
+<h3>1. 沒有假破位，只有真破位</h3>
+<p>近 30 個交易日裡，<b>9 次收盤創 250 日新低</b>（9/15、9/24、9/25、9/28、10/2、10/5、10/7、10/8、10/12）。01164 那種「盤中破位、收盤收回」的誘空形態，在天齊身上<b>完全沒有出現</b>。</p>
+<h3>2. 沒有底背離</h3>
+<p>01164 的底背離是「價格創新低、RSI6 逐級抬高」。天齊的 RSI6 近 10 日為 <code class="num">16.8 → 18.9 → 21.8 → 18.0 → 16.1 → 17.6 → 13.3 → 12.4 → 22.7 → 13.1</code>——<b>價格新低時 RSI 也同步探向新低（10/8 的 12.4）</b>。這是趨勢延續，不是動能衰竭。</p>
+<h3>3. MACD 綠柱在擴大，不是在收窄</h3>
+<p>近 10 日 MACD 柱值：<code class="num">−0.6758 → −0.6075 → −0.4931 → −0.4287 → −0.3726 → −0.2829 → −0.2578 → −0.2154 → −0.1152 → −0.1728</code>。前段確實在收窄（下跌動能減弱），<b>但最新一根又掉頭擴大（−0.1152 → −0.1728）</b>——動能重新轉弱，且離零軸還很遠（dif 為 −1.86）。</p>
+<h3>4. 波動沒有收斂</h3>
+<p>ATR14 為 1.2245（4.67%），近 10 日在 4.2%–4.8% 之間橫盤，<b>沒有出現 01164 那種從 8.02% 壓到 6.06% 的收縮</b>。波動不收斂，通常意味著趨勢尚未進入尾聲。</p>
+<div class="warn"><b>另外一個必須點出的結構風險：</b>全歷史成交量分布顯示，<b>60.5% 的成交量堆積在 34.5 港元以上</b>（見第五節圖）。這意味著即便反彈，上方每一檔都是解套盤；而 24 港元以下的成交量明顯稀薄——<b>一旦跌破 24，可能進入流動性真空，跌勢會加速。</b></div>
+</div>
+
+<h2>三、歷史統計：這是決定性的一節</h2>
+<div class="card">
+<p>取 13 個鋰礦／核能相關標的（09696.HK、01772.HK 贛鋒、ALB、SQM、LAC、SGML、LIT、PLS.AX、MIN.AX、IGO.AX、LTR.AX、CXO.AX、VUL.AX），對四個事件做前向報酬統計：</p>
+<table>
+<thead><tr><th>事件</th><th>n</th><th>T+5</th><th>T+10</th><th>T+20</th><th>T+40</th><th>T+20 勝率</th><th>T+20 MAE中位</th></tr></thead>
+<tbody class="num">
+<tr><td><b>隨機基準</b>（每 20 日無條件）</td><td>1214</td><td class="up">+0.76%</td><td class="up">+1.19%</td><td class="up">+2.98%</td><td class="up">+6.20%</td><td>49.1%</td><td>—</td></tr>
+<tr><td>F 收盤創 250 日新低</td><td>273</td><td>−0.34%</td><td>+0.15%</td><td>+2.19%</td><td>+4.31%</td><td>52.4%</td><td>−9.5%</td></tr>
+<tr><td>F2 破位 + 單日跌 &gt;3%</td><td>211</td><td>−0.44%</td><td>+0.40%</td><td>+3.15%</td><td>+6.48%</td><td>55.5%</td><td>−9.9%</td></tr>
+<tr><td>S 極度超賣（RSI6&lt;15）</td><td>195</td><td>−0.58%</td><td>−0.62%</td><td>+2.12%</td><td>+2.06%</td><td class="dn">48.7%</td><td>−10.2%</td></tr>
+<tr><td>D 深度回撤 ≥50% + RSI6&lt;25</td><td>194</td><td>−0.72%</td><td>−0.32%</td><td class="dn">+0.87%</td><td class="dn">+1.11%</td><td class="dn">46.4%</td><td>−13.2%</td></tr>
+</tbody>
+</table>
+<div class="chartbox" id="c2" style="height:360px"></div>
+<div class="note-s"><b>讀法：只看最上面兩行和最下面兩行。</b>隨機基準在幾乎所有時間窗口都優於這四個「看起來很悲慘」的事件——尤其是「極度超賣」與「深度回撤」，它們的勝率低於 50%，T+40 中位數甚至是負的。<b>換句話說：在鋰礦板塊，「跌得多」和「超賣」都不是買入理由，而是趨勢的標誌。</b></div>
+</div>
+
+<div class="card">
+<h3>路徑模擬：扣掉成本後全部為負</h3>
+<p>用同樣的方法做止損／目標二維矩陣（T+20，已扣 0.75% 來回成本），四個事件的最好一格是：</p>
+<table>
+<thead><tr><th>事件</th><th>最佳格子（止損／目標）</th><th>淨期望</th><th>隨機基準同格</th></tr></thead>
+<tbody class="num">
+<tr><td>F 創 250 日新低</td><td>−15% / +8%</td><td class="dn">−0.61%</td><td class="up">−0.33%</td></tr>
+<tr><td>F2 破位加速</td><td>−15% / +20%</td><td class="amb">+0.30%</td><td class="up">+0.52%</td></tr>
+<tr><td>S 極度超賣</td><td>−15% / +8%</td><td class="dn">−0.77%</td><td class="up">−0.33%</td></tr>
+<tr><td>D 深度回撤</td><td>—</td><td class="dn">全為負</td><td>—</td></tr>
+</tbody>
+</table>
+<div class="note-s"><b>沒有一個事件能在扣成本後跑贏隨機基準。</b>這與 01164 的結論形成強烈對比——在那裡，「假破位」事件有 +1.88% 的淨期望並顯著優於隨機基準。差別就在於：01164 出現的是<b>假</b>破位，天齊現在是<b>真</b>破位。</div>
+</div>
+
+<h2>四、最有說服力的歷史對照：2024 年那一輪</h2>
+<div class="card">
+<p>天齊 H 股自己的破位歷史上，有一段與現在驚人相似。2024 年 4 月到 9 月，它連續創了 9 次 250 日新低：</p>
+<table>
+<thead><tr><th>日期</th><th>收盤</th><th>RSI6</th><th>T+20 報酬</th></tr></thead>
+<tbody class="num">
+<tr><td>2024-04-24</td><td>27.02</td><td><b>9.9</b></td><td>+3.52%</td></tr>
+<tr><td>2024-06-11</td><td>26.37</td><td>17.4</td><td class="dn">−21.12%</td></tr>
+<tr><td>2024-06-20</td><td>25.00</td><td>14.5</td><td class="dn">−12.80%</td></tr>
+<tr><td>2024-06-28</td><td>22.40</td><td>24.4</td><td class="dn">−8.26%</td></tr>
+<tr><td>2024-07-23</td><td>20.60</td><td>24.6</td><td>−0.24%</td></tr>
+<tr><td>2024-08-05</td><td>20.25</td><td>35.4</td><td class="dn">−7.95%</td></tr>
+<tr><td>2024-08-15</td><td>20.05</td><td>31.5</td><td>−2.54%</td></tr>
+<tr><td>2024-08-23</td><td>19.42</td><td>30.4</td><td class="up">+14.57%</td></tr>
+<tr><td><b>2024-09-02</b></td><td><b>18.64</b></td><td>23.4</td><td class="up"><b>+50.21%</b></td></tr>
+</tbody>
+</table>
+<div class="warn"><b>關鍵對照：</b>2024-04-24 那天收 27.02、RSI6 = 9.9、創 250 日新低。<b>今天（10/12）收 26.22、RSI6 = 13.1、創 250 日新低——幾乎相同的價位與指標狀態。</b>而 2024 年那次，從 27.02 一路跌到 18.64，<b>中間 7 次破位全部不是底，最終跌幅 −31%</b>。</div>
+<p>更要注意最後一段的形狀：<b>真正的底部（18.64）出現時，RSI6 是 23.4——比前面 20.05 那次的 31.5 更低，且當時並沒有「極度超賣」的訊號。</b>這說明：<b>抄底訊號在底部附近反而會消失</b>，因為價格已經跌到動能無法再反映新低了。</p>
+<p>當然，2024 年與 2026 年的鋰價環境不同（當時碳酸鋰正從 10 萬跌向 7 萬，現在是跌破 11 萬）。歷史不會簡單重演——但這個對照足以說明：<b>「已經跌了很多」不構成底部的充分條件。</b></p>
+</div>
+
+<h2>五、支撐結構：它在區間中部，不在底部</h2>
+<div class="card">
+<p>把全歷史成交量按價格分桶，得到的分布非常不對稱：</p>
+<div class="chartbox" id="c3" style="height:400px"></div>
+<div class="note-s">上圖：全歷史成交量占比（按 2 港元價格桶）。<b>最密集的區域全部集中在 34.5–58 港元</b>（累計 60.5%），而 24–28 港元（當前價位區）只有約 9%。這意味著兩件事：<b>①反彈時上方套牢盤極重；②24 港元以下成交稀薄，一旦跌破可能加速。</b></div>
+<h3>關鍵價位盤點</h3>
+<div class="ladder">
+  <div class="rung"><span class="px up">33.08 <span class="pill r">MA60</span></span><span class="txt">+26.2%</span></div>
+  <div class="rung"><span class="px up">29.19 <span class="pill r">MA20</span></span><span class="txt">+11.3%</span></div>
+  <div class="rung"><span class="px up">27.81 <span class="pill r">MA10</span></span><span class="txt">+6.1%</span></div>
+  <div class="rung"><span class="px">34.50 <span class="pill n">上一輪築底區上沿</span></span><span class="txt">+31.6%</span></div>
+  <div class="rung"><span class="px"><b>26.220</b> <span class="pill r">現價</span></span><span class="txt">今日最低 26.000 ＝ 52 週低</span></div>
+  <div class="rung"><span class="px dn">25.97 <span class="pill s">BOLL 下軌</span></span><span class="txt">−0.9%</span></div>
+  <div class="rung"><span class="px dn">23.20 <span class="pill s">2025-01 低點</span></span><span class="txt">−11.5%</span></div>
+  <div class="rung"><span class="px dn">22.00 <span class="pill s">高盛目標價</span></span><span class="txt">−16.1%</span></div>
+  <div class="rung"><span class="px dn">20.25 <span class="pill s">2025-04 低點</span></span><span class="txt">−22.8%</span></div>
+  <div class="rung"><span class="px dn">18.52 <span class="pill s">2024-09 絕對低點</span></span><span class="txt">−29.4%</span></div>
+  <div class="rung"><span class="px dn">18.52–34.50</span><span class="txt">⬅ 上一輪築底區間，現價位於 <b>48.2% 分位（區間中部）</b></span></div>
+</div>
+<div class="corr"><b>一個值得注意的巧合：</b>高盛給出的目標價 22 港元，恰好落在 2025-01 低點 23.20 與 2025-04 低點 20.25 之間。基本面（券商估值）與技術面（歷史低點）在 <b>20–23 港元</b> 這一帶交匯，這是本報告中最明確的一個「參照區域」。</div>
+</div>
+
+<h2>六、從 26.220 出發：關鍵價位觸及概率</h2>
+<div class="card">
+<p>用 286 個「創 250 日新低」樣本的分布平移到當前價位：</p>
+<div class="chartbox" id="c4" style="height:400px"></div>
+<div class="note-s">T+20 內「曾觸及」概率。<b>向下：25.50（81.3%）、24.50（63.0%）、23.20（42.5%）、22.00（28.9%）、20.25（12.1%）。向上：27.00（83.9%）、27.81 MA10（68.9%）、29.19 MA20（44.0%）。</b>注意尾部風險：F 事件後跌 25% 以上的概率是 10.6%，而隨機基準只有 6.7%——<b>破位後的暴跌尾部比平常厚約 1.6 倍。</b></div>
+</div>
+
+<h2>七、「跌了這麼多次，是不是該近了？」</h2>
+<div class="card">
+<p>這是個好問題，而且數據給了一個有條件的答案。把破位按「連續第幾次」分組（間隔 ≤30 個交易日算同一序列）：</p>
+<div class="chartbox" id="c5" style="height:360px"></div>
+<table>
+<thead><tr><th>連續第 N 次創 250 日新低</th><th>n</th><th>T+20 均值</th><th>T+20 中位</th><th>勝率</th></tr></thead>
+<tbody class="num">
+<tr><td>第 1 次</td><td>88</td><td class="dn">+0.05%</td><td>+0.40%</td><td>51.1%</td></tr>
+<tr><td>第 2 次</td><td>75</td><td>+1.30%</td><td>+1.69%</td><td>56.0%</td></tr>
+<tr><td>第 3 次</td><td>71</td><td>+3.50%</td><td>+2.25%</td><td>60.6%</td></tr>
+<tr><td><b>第 4 次</b></td><td>59</td><td class="up"><b>+4.72%</b></td><td class="up"><b>+3.87%</b></td><td class="up"><b>59.3%</b></td></tr>
+<tr><td><b>第 5 次</b></td><td>51</td><td class="up"><b>+5.05%</b></td><td>+2.82%</td><td class="up">58.8%</td></tr>
+<tr><td>第 6 次</td><td>42</td><td>+4.31%</td><td>+0.58%</td><td>52.4%</td></tr>
+<tr><td>第 7 次</td><td>37</td><td>+3.12%</td><td class="dn">−0.35%</td><td class="dn">48.6%</td></tr>
+<tr><td>8 次以上</td><td>277</td><td>+4.26%</td><td>+0.90%</td><td>52.0%</td></tr>
+</tbody>
+</table>
+<p>呈<b>倒 U 型</b>：第 1 次破位後的期望最差（+0.05%，幾乎為零），第 4–5 次最好（+4.7%~+5.1%，勝率約 59%），第 7 次之後又轉差。</p>
+<p><b>天齊當前大約處在第 9 次</b>（落在「8 次以上」桶，均值 +4.26%、<b>中位僅 +0.90%</b>、勝率 52.0%）。中位數接近零，說明這是「少數大漲、多數小虧」的分布——<b>平均數被少數暴漲案例拉高，多數時候賺不到錢。</b></p>
+<div class="note-s">⚠️ 這一節的樣本切分較細（第 4、5 次各只有 51–59 個樣本），「倒 U」的形狀有可能是數據挖掘的產物，不宜當作穩定的交易規則。它的價值在於給出一個方向感：<b>第 1 次破位是最不該接的位置，這一點在兩個獨立樣本上都成立。</b></div>
+</div>
+
+<h2>八、兩個必須標註的樣本偏差</h2>
+<div class="card">
+<div class="veto">
+<p><b>① 分年勝率顯示近三年明顯更差。</b>同樣的「創 250 日新低」事件，T+20 勝率按年份拆分為：2018 年 71.4%、2019 年 57.9%、<b>2020 年 81.8%</b>、2022 年 83.3%、<b>2023 年 42.1%（n=76）</b>、<b>2024 年 50.6%（n=85）</b>、2025 年 44.8%、2026 年 57.1%。</p>
+<p>合併樣本的整體勝率 52.4%，是被 2018–2022 年的好成績拉上來的。<b>如果只看與當前週期更接近的 2023–2025 年（n=190），勝率約 46%——低於 50%，期望為負。</b>本報告的主結論（偏空）在此得到了強化，但這個偏差本身就必須揭露。</p>
+</div>
+<div class="veto">
+<p><b>② 天齊 H 股自身只有 1,047 根日 K（2022-07 上市）。</b>250 日預熱後，事件掃描區間約從 2023-07 開始，本身樣本很薄（F 事件 23 次、S 事件 9 次）。本報告的主要統計數字來自 13 個標的的合併樣本，<b>是把其他標的的分布平移過來的推導值</b>，不是天齊自己算出來的。不同標的的流動性、H/A 折價結構、漲跌停制度都不同，平移必然有誤差。</p>
+</div>
+</div>
+
+<h2>九、什麼訊號才值得等？</h2>
+<div class="card">
+<p>既然「跌得多」和「超賣」都不是理由，那什麼才是？從這套方法在 01164 上驗證有效的部分反推：</p>
+<ul>
+<li><b>① 出現「假破位」——收盤收回前低之上。</b>這是 01164 唯一被驗證有正 Alpha 的形態（T+20 淨期望 +1.88%，T+40 超額 +12pp）。天齊目前 9 次破位<b>全部是收盤創新低</b>，一次都沒出現。這是最重要的觀察點。</li>
+<li><b>② 站回並站穩 MA10（27.81）。</b>目前價格距 MA10 約 −5.7%，且 MA10 仍在下移。價格與 MA10 的關係從「持續被壓制」轉為「站上並回踩不破」，才是結構轉變。</li>
+<li><b>③ 碳酸鋰期貨止跌。</b>今天廣期所碳酸鋰主力合約暴跌 9%、跌破 11 萬關口，較 5 月高點回撤逾 48%。供應側還在擴產（宜春枧下窝約 10 萬噸 LCE 產能推進復產），中信證券預計 2027 年全球過剩 3.8 萬噸。<b>商品價格不止跌，權益很難獨立走強。</b></li>
+<li><b>④ 成交量形態改變。</b>目前是「放量下跌」（10/8 3.36M、10/9 5.50M、10/12 半日 3.28M）。需要看到「下跌縮量、反彈放量」的轉換。</li>
+</ul>
+</div>
+
+<h2>十、把話說白</h2>
+<div class="card">
+<p>如果要用一句話總結：<b>這是一個「下跌趨勢仍在延續、統計期望為負、但下方已有明確歷史參照區」的位置。</b></p>
+<table>
+<thead><tr><th>維度</th><th>評讀</th></tr></thead>
+<tbody>
+<tr><td>形態證據</td><td class="dn">反向（真破位、無背離、MACD 綠柱擴大）</td></tr>
+<tr><td>歷史統計期望</td><td class="dn">負（扣成本後 −0.33% ~ −0.97%，劣於隨機基準 +0.64%）</td></tr>
+<tr><td>破位延續概率</td><td class="dn">高（T+20 內繼續創新低 83.5%）</td></tr>
+<tr><td>當前位置</td><td class="amb">上一輪築底區 48.2% 分位（區間中部，非底部）</td></tr>
+<tr><td>下方參照</td><td class="up">明確（23.20 / 20.25 / 18.52，且與高盛目標價 22 重合）</td></tr>
+<tr><td>左側風險</td><td class="dn">24 以下成交稀薄，存在流動性真空加速風險</td></tr>
+</tbody>
+</table>
+<p>和 01164 不同的是，這次我<b>找不到任何支持「現在就進場」的統計證據</b>。合理的位置在更低處（20–23 港元，即 2025 年兩次低點與高盛目標價的交匯帶），而且即便到了那裡，也應該等「假破位」或「站回 MA10」這類確認訊號，而不是靠「跌得夠多了」的直覺。</p>
+<p>值得一提的是 H 股相對 A 股折價 40%（26.22 港元 vs A 股 39.94 元 ≈ 43.68 港元），沽空與否請自行判斷——但折價長期存在，本身不構成買入理由。</p>
+</div>
+
+<h2>數據與來源</h2>
+<div class="card src">
+<p><b>一手數據（本地計算）</b></p>
+<ul>
+<li>09696.HK 日 K（前復權）：騰訊 <code>hkfqkline</code>，1,048 根（2022-07-13 → 2026-10-12），10/12 為盤中合成 K（O 27.160 / C 26.220 / H 27.440 / L 26.000）。</li>
+<li>同業日 K：Yahoo Finance（ALB、SQM、LAC、SGML、LIT、PLS.AX、MIN.AX、IGO.AX、LTR.AX、CXO.AX、VUL.AX）＋ 騰訊（01772.HK 贛鋒 H、09696.HK）。共 13 個標的。</li>
+<li>指標（MA／BOLL／RSI／KDJ／MACD／ATR）與成交量分布、事件去重（5–10 日冷卻）、路徑模擬全部本地計算。合併樣本：創 250 日新低 273 次、破位加速 211 次、極度超賣 195 次、深度回撤 194 次、隨機基準 1,214 次。</li>
+</ul>
+<p><b>消息面來源</b></p>
+<ul>
+<li>同花順財經（2026-10-12）：高盛維持「賣出」評級，目標價由 33 港元下調至 <b>22 港元</b>；2026–2028 盈利預測 +14% / +45% / <b>−62%</b>；碳酸鋰基準價 2026 年 1.89 萬美元/噸、2027 年 1.37 萬、2028 年 1.1 萬。[需核實原文]</li>
+<li>新浪財經（2026-10-12）：廣期所碳酸鋰主力合約暴跌 9%，報 108,020 元/噸，跌破 11 萬關口，較 5 月 20.98 萬高點回撤逾 48%；宜春枧下窝鋰礦環評擬受理公示，年產能約 10 萬噸 LCE，預計年末至明年初復產；中信證券預計 2027 年全球鋰市場過剩 3.8 萬噸，下調 2026Q4 鋰價區間至 10–15 萬元/噸。[需核實原文]</li>
+<li>經濟通 etnet（2026-10-07）：高盛同時下調贛鋒鋰業 H 股目標價至 31 港元、A 股至 30 元人民幣。[需核實原文]</li>
+<li>長江證券（2026-10-12）：認為鋰及戰略金屬重回價值區間，權益在商品下跌中已有所鈍化，長期配置價值逐步凸顯。<i>（這是與本報告主結論相反的一家觀點，一併列出）</i>[需核實原文]</li>
+</ul>
+<p class="note-s">標註「需核實原文」者為二手媒體報導，未取得券商原始報告或交易所公告原文。匯率採用 1 CNY ≈ 1.0936 HKD 作近似換算。</p>
+</div>
+
+<div class="disc">
+<b>免責聲明：</b>以上內容基於公開數據和量化分析，僅供參考，不構成投資建議。文中所有概率均為歷史統計推導值，不構成對未來表現的承諾或保證，且「曾觸及」概率不等於「收盤於該價位」。本報告的統計數字主要來自 13 個標的的合併樣本平移，非 09696 自身單一標的的實測結果；且合併樣本的 2018–2022 年表現明顯優於 2023–2025 年，存在時期偏差。市場有風險，投資需謹慎。任何投資決策應結合個人風險承受能力、資金狀況和投資目標獨立判斷，必要時諮詢持牌專業機構。過往表現不預示未來收益。
+</div>
+
+</div>
+
+<script>
+(function(){
+  var ink='#1b2430', ink3='#8b95a1', line='#e3e7ec', up='#c62828', dn='#2e7d32', blu='#1a5fb4', amb='#b26a00';
+  var base={textStyle:{fontFamily:'-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif'}};
+
+  var D=["2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05","2026-06-08","2026-06-09","2026-06-10","2026-06-11","2026-06-12","2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-22","2026-06-23","2026-06-24","2026-06-25","2026-06-26","2026-06-29","2026-06-30","2026-07-02","2026-07-03","2026-07-06","2026-07-07","2026-07-08","2026-07-09","2026-07-10","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-27","2026-07-28","2026-07-29","2026-07-30","2026-07-31","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-31","2026-09-01","2026-09-02","2026-09-03","2026-09-04","2026-09-07","2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-28","2026-09-29","2026-09-30","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12"];
+  var CL=[49.04,48.24,47.5,45.76,43.78,43.04,44.9,43.76,44.72,47.5,48.3,46.94,46.44,43.8,44.76,42.34,43.32,41.42,38.64,39.6,40.18,39.5,40.3,40.7,39.54,36.36,35.22,33.74,33.08,34.16,33.2,33.68,32.46,30.88,32.0,32.18,34.42,32.94,33.32,32.34,33.88,33.26,33.42,34.04,35.3,36.34,35.46,35.78,36.76,35.92,36.68,35.28,35.68,36.16,35.1,34.1,33.74,37.7,38.2,36.34,36.44,36.96,38.2,37.86,37.58,36.5,36.2,34.5,34.56,34.76,34.92,33.66,31.82,31.78,30.14,30.7,30.7,31.22,31.7,30.86,30.6,29.2,28.78,28.5,28.58,28.68,28.2,27.92,27.96,27.36,27.22,27.46,26.22];
+  var LO=[48.6,47.0,46.62,45.22,43.72,42.18,42.64,42.68,42.8,44.9,47.02,46.62,46.16,42.88,41.4,41.82,41.5,40.84,38.38,38.48,39.42,39.16,40.0,39.94,39.02,36.08,34.14,33.6,32.58,32.34,33.0,32.12,31.82,30.5,30.24,31.6,32.38,32.66,32.74,31.86,32.1,32.82,32.92,32.58,33.96,35.18,34.92,35.22,36.22,35.74,35.78,35.04,35.02,35.6,34.66,33.82,33.6,33.96,37.8,35.88,35.68,36.1,37.28,37.4,37.3,35.62,36.18,34.4,33.84,34.62,34.26,33.56,30.66,31.26,30.1,29.2,30.04,30.42,30.96,30.8,30.44,29.08,28.3,27.98,28.26,28.12,27.62,27.62,27.7,27.24,27.22,26.94,26.0];
+  var RS=[15.7,13.5,11.6,8.3,6.0,5.3,29.0,24.5,34.8,55.7,60.1,49.9,46.5,32.3,40.2,29.7,37.6,29.8,21.8,29.6,34.4,31.4,38.9,42.6,35.1,22.2,19.2,15.8,14.5,26.8,23.2,28.9,23.6,18.3,31.3,33.4,53.9,43.3,46.5,39.6,52.9,47.8,49.3,55.3,65.3,71.6,60.5,63.0,70.0,58.6,64.8,48.6,52.7,57.5,45.3,36.5,33.7,67.2,69.5,52.8,53.5,57.5,66.0,62.0,58.4,46.1,43.1,29.8,30.7,34.1,37.1,26.0,17.1,17.0,11.8,21.6,21.6,31.7,40.2,31.9,29.6,20.2,18.1,16.8,18.9,21.8,18.0,16.1,17.6,13.3,12.4,22.7,13.1];
+  var M10=[51.55,50.95,50.46,49.65,48.81,47.9,47.24,46.52,45.98,45.82,45.75,45.62,45.51,45.32,45.42,45.35,45.19,44.95,44.35,43.56,42.74,42.0,41.39,41.08,40.55,39.96,39.15,38.38,37.82,37.28,36.58,36.0,35.21,34.23,33.48,33.06,32.98,32.9,32.92,32.74,32.81,32.77,32.86,33.18,33.51,33.93,34.03,34.31,34.66,35.02,35.3,35.5,35.72,35.94,35.92,35.69,35.52,35.71,35.86,35.9,35.87,36.04,36.29,36.46,36.71,36.95,37.2,36.88,36.51,36.36,36.2,35.87,35.24,34.63,33.88,33.3,32.75,32.43,32.14,31.75,31.32,30.87,30.57,30.24,30.08,29.88,29.63,29.3,28.93,28.58,28.24,28.07,27.81];
+  var M60=[51.86,51.95,52.03,52.07,52.08,52.08,52.09,52.08,52.1,52.17,52.25,52.34,52.43,52.49,52.56,52.6,52.62,52.56,52.46,52.32,52.19,52.09,52.0,51.9,51.74,51.52,51.27,50.94,50.54,50.22,49.83,49.41,48.98,48.52,48.07,47.65,47.22,46.79,46.37,45.86,45.32,44.74,44.21,43.66,43.13,42.7,42.25,41.83,41.45,41.09,40.79,40.47,40.19,39.9,39.61,39.31,39.02,38.8,38.6,38.39,38.18,37.99,37.83,37.7,37.6,37.49,37.34,37.19,37.02,36.81,36.58,36.36,36.12,35.92,35.68,35.48,35.27,35.1,34.99,34.84,34.68,34.51,34.32,34.11,33.93,33.8,33.69,33.59,33.5,33.39,33.29,33.19,33.08];
+
+  // ---- 图1 ----
+  echarts.init(document.getElementById('c1')).setOption(Object.assign({},base,{
+    title:{text:'09696 收盤價 / MA10 / MA60（左軸）vs RSI6（右軸）',left:'center',textStyle:{fontSize:14,color:ink}},
+    tooltip:{trigger:'axis'},
+    legend:{top:28,data:['收盤價','MA10','MA60','RSI6']},
+    grid:{left:56,right:58,top:76,bottom:46},
+    xAxis:{type:'category',data:D,axisLabel:{color:ink3,fontSize:10,interval:8},axisLine:{lineStyle:{color:line}}},
+    yAxis:[
+      {type:'value',name:'港元',min:22,max:54,axisLabel:{color:ink3,fontSize:10},splitLine:{lineStyle:{color:line}}},
+      {type:'value',name:'RSI6',min:0,max:100,axisLabel:{color:blu,fontSize:10},splitLine:{show:false}}
+    ],
+    series:[
+      {name:'收盤價',type:'line',data:CL,smooth:true,symbol:'none',lineStyle:{width:2.4,color:ink},
+       markArea:{silent:true,itemStyle:{color:'rgba(198,40,40,0.07)'},
+         data:[[{xAxis:'2026-09-11'},{xAxis:'2026-10-12'}]]}},
+      {name:'MA10',type:'line',data:M10,smooth:true,symbol:'none',lineStyle:{width:1.5,color:amb}},
+      {name:'MA60',type:'line',data:M60,smooth:true,symbol:'none',lineStyle:{width:1.5,color:blu}},
+      {name:'RSI6',type:'line',yAxisIndex:1,data:RS,smooth:true,symbol:'none',lineStyle:{width:1.6,color:'#9aa4b0'},
+       markLine:{silent:true,symbol:'none',lineStyle:{color:'#c9ced6',type:'dotted'},
+         data:[{yAxis:30,label:{formatter:'超賣線 30',fontSize:10,color:ink3}}]}}
+    ]
+  }));
+
+  // ---- 图2 ----
+  echarts.init(document.getElementById('c2')).setOption(Object.assign({},base,{
+    title:{text:'事件後平均報酬對照（13 個鋰礦標的合併）',left:'center',textStyle:{fontSize:14,color:ink}},
+    tooltip:{trigger:'axis',valueFormatter:function(v){return v+'%';}},
+    legend:{top:28},
+    grid:{left:58,right:24,top:78,bottom:40},
+    xAxis:{type:'category',data:['T+5','T+10','T+20','T+40'],axisLabel:{color:ink3},axisLine:{lineStyle:{color:line}}},
+    yAxis:{type:'value',name:'平均報酬 %',axisLabel:{color:ink3,formatter:'{value}%'},splitLine:{lineStyle:{color:line}}},
+    series:[
+      {name:'隨機基準 (n=1214)',type:'bar',data:[0.76,1.19,2.98,6.20],itemStyle:{color:'#5b8f5f',borderRadius:[3,3,0,0]},
+       label:{show:true,position:'top',fontSize:10,formatter:'{c}%'}},
+      {name:'F 創250日新低 (n=273)',type:'bar',data:[-0.34,0.15,2.19,4.31],itemStyle:{color:up,borderRadius:[3,3,0,0]}},
+      {name:'F2 破位+跌>3% (n=211)',type:'bar',data:[-0.44,0.40,3.15,6.48],itemStyle:{color:'#e08b8b',borderRadius:[3,3,0,0]}},
+      {name:'S 極度超賣 (n=195)',type:'bar',data:[-0.58,-0.62,2.12,2.06],itemStyle:{color:'#c9a227',borderRadius:[3,3,0,0]}},
+      {name:'D 深度回撤 (n=194)',type:'bar',data:[-0.72,-0.32,0.87,1.11],itemStyle:{color:'#9aa4b0',borderRadius:[3,3,0,0]}}
+    ]
+  }));
+
+  // ---- 图3 成交密集区 ----
+  var N3=['24.52-26.52','26.52-28.52','34.52-36.52','36.52-38.52','38.52-40.52','40.52-42.52','42.52-44.52','44.52-46.52','46.52-48.52','48.52-50.52','52.52-54.52','56.52-58.52'];
+  var V3=[4.98,4.20,4.52,3.61,7.28,4.63,6.89,6.85,7.33,4.72,5.31,3.76];
+  echarts.init(document.getElementById('c3')).setOption(Object.assign({},base,{
+    title:{text:'全歷史成交量分布（前 12 大密集區，桶寬 2 港元）',left:'center',textStyle:{fontSize:14,color:ink}},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:function(v){return v+'%';}},
+    grid:{left:104,right:60,top:58,bottom:36},
+    xAxis:{type:'value',max:8,axisLabel:{color:ink3,formatter:'{value}%'},splitLine:{lineStyle:{color:line}}},
+    yAxis:{type:'category',data:N3,axisLabel:{color:ink,fontSize:11.5},axisLine:{lineStyle:{color:line}}},
+    series:[{
+      type:'bar',data:V3.map(function(v,i){
+        var cur=(i<2);
+        return {value:v,itemStyle:{color:(cur?'#b26a00':up),borderRadius:[0,4,4,0]}};
+      }),
+      label:{show:true,position:'right',fontSize:11,formatter:'{c}%',color:ink}
+    }]
+  }));
+
+  // ---- 图4 触及概率 ----
+  var N4=['18.52 絕對低','20.25 前低','22.00 高盛目標','23.20 2025低','24.50','25.50',
+          '27.00','27.81 MA10','29.19 MA20','31.00'];
+  var V4=[10.6,12.1,28.9,42.5,63.0,81.3,83.9,68.9,44.0,24.9];
+  echarts.init(document.getElementById('c4')).setOption(Object.assign({},base,{
+    title:{text:'T+20 內「曾觸及」各價位概率（由 26.220 出發，n=286）',left:'center',textStyle:{fontSize:14,color:ink}},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:function(v){return v+'%';}},
+    grid:{left:120,right:56,top:58,bottom:36},
+    xAxis:{type:'value',max:100,axisLabel:{color:ink3,formatter:'{value}%'},splitLine:{lineStyle:{color:line}}},
+    yAxis:{type:'category',data:N4,axisLabel:{color:ink,fontSize:11.5},axisLine:{lineStyle:{color:line}}},
+    series:[{
+      type:'bar',data:V4.map(function(v,i){
+        return {value:v,itemStyle:{color:(i<6?dn:up),borderRadius:[0,4,4,0]}};
+      }),
+      label:{show:true,position:'right',fontSize:11,formatter:'{c}%',color:ink}
+    }]
+  }));
+
+  // ---- 图5 连续破位序号 ----
+  echarts.init(document.getElementById('c5')).setOption(Object.assign({},base,{
+    title:{text:'「連續第 N 次創 250 日新低」後的 T+20 報酬與勝率',left:'center',textStyle:{fontSize:14,color:ink}},
+    tooltip:{trigger:'axis'},
+    legend:{top:28,data:['T+20 均值','T+20 勝率']},
+    grid:{left:58,right:58,top:78,bottom:40},
+    xAxis:{type:'category',data:['第1次','第2次','第3次','第4次','第5次','第6次','第7次','8次以上'],axisLabel:{color:ink3,fontSize:11},axisLine:{lineStyle:{color:line}}},
+    yAxis:[
+      {type:'value',name:'報酬 %',axisLabel:{color:ink3,formatter:'{value}%'},splitLine:{lineStyle:{color:line}}},
+      {type:'value',name:'勝率 %',min:40,max:70,axisLabel:{color:blu,formatter:'{value}%'},splitLine:{show:false}}
+    ],
+    series:[
+      {name:'T+20 均值',type:'bar',data:[0.05,1.30,3.50,4.72,5.05,4.31,3.12,4.26],
+       itemStyle:{color:function(p){return p.dataIndex===3||p.dataIndex===4?up:'#e0a3a3';},borderRadius:[3,3,0,0]},
+       label:{show:true,position:'top',fontSize:10,formatter:'{c}%'}},
+      {name:'T+20 勝率',type:'line',yAxisIndex:1,data:[51.1,56.0,60.6,59.3,58.8,52.4,48.6,52.0],
+       symbol:'circle',symbolSize:7,lineStyle:{width:2.2,color:blu},itemStyle:{color:blu},
+       markLine:{silent:true,symbol:'none',lineStyle:{color:'#c9ced6',type:'dashed'},
+         data:[{yAxis:50,label:{formatter:'勝率 50%',fontSize:10,color:ink3}}]}}
+    ]
+  }));
+
+  window.addEventListener('resize',function(){
+    ['c1','c2','c3','c4','c5'].forEach(function(id){
+      var el=document.getElementById(id); if(el){var c=echarts.getInstanceByDom(el); if(c)c.resize();}
+    });
+  });
+})();
+</script>
+</body>
+</html>

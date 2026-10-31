@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01164 中廣核礦業｜「1.9x 有底了嗎？」底部結構的形態證據與歷史檢驗</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --ink:#1b2430; --ink2:#5a6673; --ink3:#8b95a1;
+    --line:#e3e7ec; --up:#c62828; --dn:#2e7d32; --amber:#b26a00; --blue:#1a5fb4;
+    --upbg:#fdf0f0; --dnbg:#eef6ef; --amdbg:#fdf6e8; --bluebg:#eef4fc;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+       font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;}
+  h1{font-size:25px;margin:0 0 6px;letter-spacing:-.4px;}
+  .sub{color:var(--ink2);font-size:13.5px;}
+  h2{font-size:18px;margin:34px 0 12px;padding-left:10px;border-left:4px solid var(--ink);letter-spacing:-.2px;}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--ink);}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px;}
+  .verdict{border-left:5px solid var(--amber);background:var(--amdbg);border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+  .verdict .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.5px;
+    background:var(--amber);color:#fff;padding:2px 9px;border-radius:4px;margin-bottom:9px;}
+  .verdict p{margin:7px 0;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;margin-bottom:18px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:13px 14px;}
+  .kpi .lbl{font-size:11.5px;color:var(--ink3);letter-spacing:.3px;margin-bottom:5px;}
+  .kpi .val{font-size:20px;font-weight:700;letter-spacing:-.5px;}
+  .kpi .note{font-size:11.5px;color:var(--ink3);margin-top:3px;}
+  .up{color:var(--up);} .dn{color:var(--dn);} .amb{color:var(--amber);} .blu{color:var(--blue);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0 4px;}
+  th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{background:#eef0f3;font-weight:600;color:var(--ink2);font-size:12.5px;border-bottom:1.5px solid #d5dae0;}
+  tbody tr:hover{background:#fafbfc;}
+  .num{font-variant-numeric:tabular-nums;}
+  .chartbox{margin:6px 0 4px;}
+  .note-s{font-size:12px;color:var(--ink3);margin-top:8px;line-height:1.65;}
+  .ladder{position:relative;padding:6px 0;}
+  .rung{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #e8ebef;}
+  .rung:last-child{border-bottom:none;}
+  .rung .px{width:110px;font-weight:700;font-variant-numeric:tabular-nums;font-size:14.5px;flex:none;}
+  .rung .bar{height:16px;border-radius:3px;flex:none;}
+  .rung .txt{font-size:12.5px;color:var(--ink2);}
+  .pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;font-weight:600;}
+  .pill.s{background:var(--dnbg);color:var(--dn);}
+  .pill.r{background:var(--upbg);color:var(--up);}
+  .pill.n{background:#eef0f3;color:var(--ink2);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr;}}
+  ul{margin:8px 0 8px 18px;padding:0;} li{margin:5px 0;}
+  .veto{border-left:4px solid var(--dn);background:var(--dnbg);padding:12px 16px;border-radius:8px;margin:10px 0;}
+  .veto b{color:var(--dn);}
+  .warn{border-left:4px solid var(--up);background:var(--upbg);padding:12px 16px;border-radius:8px;margin:10px 0;}
+  .warn b{color:var(--up);}
+  .corr{border-left:4px solid var(--blue);background:var(--bluebg);padding:12px 16px;border-radius:8px;margin:10px 0;}
+  .corr b{color:var(--blue);}
+  .src{font-size:12.5px;color:var(--ink2);}
+  .src li{margin:4px 0;}
+  .disc{margin-top:26px;padding:14px 18px;background:#eef0f3;border-radius:9px;font-size:12.5px;color:var(--ink2);line-height:1.7;}
+  code{background:#eef0f3;padding:1px 5px;border-radius:3px;font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>01164 中廣核礦業｜「1.9x 有底了嗎？」</h1>
+  <div class="sub">底部結構的形態證據、多標的歷史檢驗與關鍵價位概率 ｜ 數據截至 2026-10-12 港股盤中 ｜ 前復權</div>
+</header>
+
+<div class="verdict">
+  <span class="tag">結論先行</span>
+  <p><b>你觀察到的現象是真的，但「1.9x」需要精確化為 1.95–2.00。</b>收盤價從未在 1.9x 停留過——只有 9/16 與 10/9 兩根 K 線的<b>下影線</b>刺進去又收回。真正的地基在 1.95–2.00，而它目前已經守住了兩次。</p>
+  <p><b>「有底」的形態證據確實齊了：</b>底背離（RSI6 從 19.5 爬到 40.5）、假破位（10/9 下影佔 92.3%）、MACD 零軸下金叉、ATR 從 8.02% 收斂到 6.06%。</p>
+  <p><b>但價格確認尚未發生。</b>10/12 收 2.035，仍低於 10/9 假破位日收盤 2.070——信號出現了，卻還沒被向上突破確認。</p>
+  <p><b>統計上最重要的一句：</b>「假破位」在 13 個鈾礦標的、91 個歷史樣本中，T+20 均值 <b>+6.62%</b>、T+40 均值 <b>+19.48%</b>，而「什麼都不看」的隨機基準只有 +3.41% / +7.25%。<b>這是真 Alpha。而「長下影」事件（+3.62%）幾乎等於隨機——它沒有 Alpha。</b></p>
+  <p><b>最需要警惕的一點：</b>從 2.035 出發，T+20 內再測 1.95 的概率是 <b>73.5%</b>。左側風險真實存在，這不是「已經安全了」的位置。</p>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="lbl">現價（10/12 盤中）</div><div class="val num">2.035</div><div class="note dn">−1.69%</div></div>
+  <div class="kpi"><div class="lbl">52 週低點</div><div class="val num dn">1.950</div><div class="note">10/9 創下</div></div>
+  <div class="kpi"><div class="lbl">距 250 日前低</div><div class="val num amb">+4.36%</div><div class="note">前低 1.950</div></div>
+  <div class="kpi"><div class="lbl">ATR14 / 日</div><div class="val num blu">6.06%</div><div class="note">9/11 時為 8.02%</div></div>
+  <div class="kpi"><div class="lbl">RSI6</div><div class="val num">36.1</div><div class="note">已脫離超賣</div></div>
+  <div class="kpi"><div class="lbl">距 252 日高</div><div class="val num dn">−64.0%</div><div class="note">高點 5.646</div></div>
+</div>
+
+<h2>一、事實校正：1.9x 的真相</h2>
+<div class="card">
+<p>先把「1.9x 有底」這句話拆開。翻開逐日數據，近三個月的低點序列是這樣的：</p>
+<table>
+<thead><tr><th>日期</th><th>盤中最低</th><th>收盤</th><th>下影佔比</th><th>RSI6</th><th>成交量</th><th>形態</th></tr></thead>
+<tbody class="num">
+<tr><td>2026-07-17</td><td>2.070</td><td>2.130</td><td>—</td><td>17.1</td><td>63.1M</td><td>前一輪低點</td></tr>
+<tr><td>2026-09-15</td><td>2.000</td><td>2.015</td><td>—</td><td><b>19.5</b></td><td>105.4M</td><td>首次破 2.00</td></tr>
+<tr><td>2026-09-16</td><td><b>1.965</b></td><td>2.125</td><td>—</td><td><b>32.3</b></td><td>94.8M</td><td>假破位 #1</td></tr>
+<tr><td>2026-10-09</td><td><b>1.950</b></td><td>2.070</td><td><b>92.3%</b></td><td><b>40.5</b></td><td>70.3M</td><td>假破位 #2</td></tr>
+<tr><td>2026-10-12</td><td>2.030</td><td>2.035</td><td>6.3%</td><td>36.1</td><td>12.5M*</td><td>縮量回踩</td></tr>
+</tbody>
+</table>
+<div class="note-s">* 10/12 為上午收盤的半日量。<b>關鍵事實：整個區間內，收盤價從未跌破 2.000；最低收盤是 9/15 的 2.015。所謂的「1.9x」，全部發生在盤中影線裡。</b></div>
+<div class="chartbox" id="c1" style="height:400px"></div>
+<div class="note-s">上圖：收盤價與盤中最低價（左軸，港元）對照 RSI6（右軸）。三個箭頭處，價格逐級創低（2.070 → 1.965 → 1.950），RSI6 卻逐級抬高（17.1 → 32.3 → 40.5）——<b>這就是底背離</b>。</div>
+</div>
+
+<h2>二、支撐「有底」的四條硬證據</h2>
+<div class="card">
+<h3>1. 底背離（最硬的一條）</h3>
+<p>三次探底，價格一次比一次低，但動能指標一次比一次高。把三個低點排起來看：低點 2.070 時 RSI6 = 17.1；低點 1.965 時 RSI6 = 32.3；低點 1.950 時 RSI6 = 40.5。<b>賣方力量在價格創新低的過程中持續衰竭</b>，這是底部形成的必要（非充分）條件。</p>
+<h3>2. 假破位</h3>
+<p>10/9 盤中最低 1.950，跌破前低 1.965，但收盤拉回 2.070——<b>下影線佔當日全幅 92.3%</b>。這種「破位又收回」的走勢在技術上是典型的誘空洗盤。01164 歷史上只出現過 3 次：2025-04-09、2026-09-16、2026-10-09。</p>
+<h3>3. MACD 零軸下方金叉</h3>
+<p>MACD 柱狀值近 10 日序列：<code class="num">−0.0199 → −0.0181 → −0.0073 → −0.0024 → +0.0043 → +0.0125 → +0.0333 → +0.0295 → +0.0264 → +0.0207</code>。由負轉正、且在零軸下方完成——代表下跌動能衰竭，但尚未進入強勢區。</p>
+<h3>4. 波動收斂與量能形態</h3>
+<p>ATR14 從 9/11 的 8.02% 降至 <b>6.06%</b>，價格波幅在壓縮（布林帶收窄至 12.8%）。成交量的節奏也對：10/9 破位日放量 70.3M（前一日 38.2M），<b>次日 10/12 縮量至 12.5M（半日）</b>——放量破位、縮量回踩，是承接而非恐慌。</p>
+</div>
+
+<h2>三、歷史檢驗：這次我把自己的樂觀結論推翻了</h2>
+<div class="corr">
+<p><b>誠實聲明：</b>我最初只用了 URA 一個標的做檢驗，得到「長下影事件 T+20 勝率 76.5%、MAE 僅 −3.0%」的結果——看起來非常誘人。</p>
+<p>但當我把樣本擴大到 <b>13 個鈾礦／核能標的（URA、URNM、URNJ、CCJ、UEC、UUUU、NXE、DNN、URG、EU、SMR、OKLO、LEU，2016–2026）</b>，同樣的事件定義下，勝率從 76.5% 崩到 <b>56.3%</b>，MAE 中位從 −3.0% 惡化到 <b>−8.9%</b>。</p>
+<p><b>URA 那個漂亮數字是倖存者偏差</b>——URA 是一個大 ETF，本身比 URG、DNN、SMR 這些小礦股抗跌得多。用單一標的下結論，等於只看了樂觀的那一半樣本。以下是最終的合併結果。</p>
+</div>
+<div class="card">
+<table>
+<thead><tr><th>事件（13 標的合併）</th><th>樣本 n</th><th>T+5</th><th>T+10</th><th>T+20</th><th>T+40</th><th>T+20 勝率</th><th>T+20 MAE中位</th></tr></thead>
+<tbody class="num">
+<tr><td><b>G 假破位</b>（盤中破低收盤收回）</td><td>83</td><td>+0.41%</td><td>+3.53%</td><td class="up"><b>+6.62%</b></td><td class="up"><b>+19.48%</b></td><td><b>60.2%</b></td><td>−10.4%</td></tr>
+<tr><td>I 長下影探前低（下影&gt;50%+收陽）</td><td>151</td><td>−0.11%</td><td>+2.96%</td><td>+3.62%</td><td>+13.35%</td><td>56.3%</td><td>−8.9%</td></tr>
+<tr><td>H 貼近前低未破（≤3%）</td><td>95</td><td>+0.06%</td><td>+1.48%</td><td>+2.78%</td><td>+8.68%</td><td>57.9%</td><td>−10.3%</td></tr>
+<tr><td>隨機基準（每 20 日無條件進場）</td><td>1221</td><td>+0.70%</td><td>+1.75%</td><td>+3.41%</td><td>+7.25%</td><td>51.2%</td><td>—</td></tr>
+</tbody>
+</table>
+<div class="chartbox" id="c2" style="height:360px"></div>
+<div class="note-s">上圖：橫軸為事件後交易日數，縱軸為平均報酬。注意<b>假破位（深紅）在 T+20 之後與其他事件明顯分道揚鑣</b>——T+40 時達 +19.48%，是隨機基準的 2.7 倍。</div>
+</div>
+
+<div class="card">
+<h3>怎麼解讀這張表</h3>
+<ul>
+<li><b>「長下影」沒有 Alpha。</b>T+20 均值 +3.62% 幾乎等於隨機基準 +3.41%。看到長下影就買，跟蒙著眼睛買差不多。這否定了市面上流行的一種說法。</li>
+<li><b>「貼近前低未破」也沒有 Alpha。</b>T+20 +2.78%，甚至低於隨機基準。單純「跌到前低附近」不構成進場理由。</li>
+<li><b>真正的 Alpha 在「假破位」——破位之後收回來的那一下。</b>T+20 超額 +3.2 個百分點，T+40 超額 <b>+12.2 個百分點</b>，勝率 60.2% / 67.5%。它的價值在於它區分了「假摔」與「真跌」。</li>
+<li><b>但 MAE 中位 −10.4% 也是真的。</b>即使方向對，中途仍要忍受一成浮虧，且 MAE 的 25 分位是 −19.7%。這條路的代價是波動忍受力。</li>
+<li><b>樣本年度分布：</b>2018(10)、2019(12)、2020(12)、2022(7)、2023(10)、2024(8)、2025(19)、2026(13)。跨越牛熊，但 2025 年樣本偏多，可能受該年市場環境影響——這是需要標註的局限。</li>
+</ul>
+</div>
+
+<h2>四、從 2.035 出發：關鍵價位的觸及概率</h2>
+<div class="card">
+<p>用上述 83 個假破位樣本的分布，平移到 01164 當前價位 2.035，得到 20 個交易日內「曾觸及」各價位的概率：</p>
+<div class="chartbox" id="c3" style="height:420px"></div>
+<div class="ladder">
+  <div class="rung"><span class="px up">2.44 <span class="pill r">MA60</span></span><span class="bar" style="width:0px"></span><span class="txt">T+20 內觸及概率 <b>37.3%</b>（+19.9%）</span></div>
+  <div class="rung"><span class="px up">2.36</span><span class="bar" style="width:0px"></span><span class="txt">49.4%（+16.0%）</span></div>
+  <div class="rung"><span class="px up">2.28</span><span class="bar" style="width:0px"></span><span class="txt">56.6%（+12.0%）</span></div>
+  <div class="rung"><span class="px up">2.20</span><span class="bar" style="width:0px"></span><span class="txt">75.9%（+8.1%）</span></div>
+  <div class="rung"><span class="px up">2.12 <span class="pill r">MA20</span></span><span class="bar" style="width:0px"></span><span class="txt"><b>89.2%</b>（+4.2%）</span></div>
+  <div class="rung"><span class="px up">2.09 <span class="pill r">MA10</span></span><span class="bar" style="width:0px"></span><span class="txt"><b>90.4%</b>（+2.7%）</span></div>
+  <div class="rung"><span class="px">2.035</span><span class="bar" style="width:0px"></span><span class="txt">— 現價 —</span></div>
+  <div class="rung"><span class="px dn">1.95 <span class="pill s">前低</span></span><span class="bar" style="width:0px"></span><span class="txt"><b>73.5%</b>（−4.2%）</span></div>
+  <div class="rung"><span class="px dn">1.90</span><span class="bar" style="width:0px"></span><span class="txt">66.3%（−6.6%）</span></div>
+  <div class="rung"><span class="px dn">1.85</span><span class="bar" style="width:0px"></span><span class="txt">55.4%（−9.1%）</span></div>
+  <div class="rung"><span class="px dn">1.80</span><span class="bar" style="width:0px"></span><span class="txt">48.2%（−11.6%）</span></div>
+</div>
+<div class="note-s"><b>解讀：向上摸到 2.09–2.12 的概率（90.4% / 89.2%）明顯高於向下再破 1.95（73.5%）。</b>但兩邊機率都很高——這是震盪市的指紋，不是單邊市的。此外，+16%（2.36）要穿過 8 月 2.60–2.80 下方的密集套牢區，01164 的籌碼結構比一般鈾礦標的更重，這個目標的實際達成難度高於表上數字。</div>
+</div>
+
+<h2>五、與 9 月的關鍵反轉：它不再是「跌最狠的那個」</h2>
+<div class="card">
+<p>9/11 你問我「為什麼跌成那樣」，當時的答案是「01164 是板塊裡跌最狠的」。一個月後，劇本反過來了：</p>
+<table>
+<thead><tr><th>標的</th><th>9/11 → 10/9 漲跌</th><th>類型</th></tr></thead>
+<tbody class="num">
+<tr><td>UUUU Energy Fuels</td><td class="dn">−23.09%</td><td>鈾礦／稀土</td></tr>
+<tr><td>SMR NuScale</td><td class="dn">−16.38%</td><td>反應爐</td></tr>
+<tr><td>UEC Uranium Energy</td><td class="dn">−12.06%</td><td>鈾礦</td></tr>
+<tr><td>URNM 鈾礦 ETF</td><td class="dn">−11.23%</td><td>ETF</td></tr>
+<tr><td>NXE NexGen</td><td class="dn">−11.17%</td><td>鈾礦</td></tr>
+<tr><td>URA 鈾礦 ETF</td><td class="dn">−10.64%</td><td>ETF</td></tr>
+<tr><td><b>01164 中廣核礦業</b></td><td class="dn"><b>−9.21%</b></td><td>鈾礦</td></tr>
+<tr><td>CCJ Cameco</td><td class="dn">−8.92%</td><td>鈾礦龍頭</td></tr>
+<tr><td>LEU Centrus</td><td class="dn">−6.48%</td><td>濃縮</td></tr>
+<tr><td>OKLO</td><td class="dn">−4.20%</td><td>反應爐</td></tr>
+</tbody>
+</table>
+<div class="chartbox" id="c4" style="height:380px"></div>
+<div class="note-s"><b>9 月，01164 超額落後同業約 20–30 個百分點；10 月，它變成了板塊裡抗跌的前段班（−9.21%，僅劣於 CCJ、LEU、OKLO）。</b>合理的解釋是：中報利空（虧損擴大、不派息、成本倒掛）在 8–9 月已被充分定價，當 10 月板塊因宏觀因素普遍下殺時，01164 反而沒有額外的個股利空可以再跌。</div>
+</div>
+
+<h2>六、板塊為何普跌：是殺估值，不是鈾基本面壞了</h2>
+<div class="card">
+<p>10 月這一輪下殺是<b>宏觀驅動的估值壓縮</b>，而非商品基本面惡化：</p>
+<ul>
+<li><b>利率：</b>美國 30 年期公債殖利率升至 2002 年以來最高；Fed 9 月會議紀要顯示多數官員預期年底前再加息，12 月加息概率由 58% 升至 70%。鈾礦股是長久期資產（現金流全押在未來鈾價），對貼現率最敏感。</li>
+<li><b>美元：</b>美元指數升至 2025 年 4 月以來最高，自 9 月初上漲 3.5%，壓制大宗商品與資源股。</li>
+<li><b>商品端反而是漲的：</b>Citi 長期鈾價基準升至歷史新高的 <b>96 美元/磅</b>，並預測三個月內可能突破 100 美元。現貨對長協呈 <b>6 美元/磅貼水</b>（2023–24 年為現貨溢價 30 美元以上）——意味著終端用戶在為長期稀缺定價，但不急於近期交付。</li>
+<li><b>需求敘事降溫：</b>Holtec 撤回約 100 億美元 IPO，CEO 直言原因是「近期市場修正與投資人對 AI 交易的熱情降溫」；X-Energy 已較 4 月 IPO 價低約 37%。</li>
+</ul>
+<div class="warn"><b>這對 01164 的意義：</b>股價跌、商品漲的背離，說明殺的是估值倍數而非盈利預期。這種下跌在利率轉向時容易快速修復——但也可能在任何利率數據轉鷹時繼續。<b>它不是公司層面的問題，所以你無法用公司層面的分析去判斷它的底。</b></div>
+</div>
+
+<h2>七、風險、局限與我不同意的地方</h2>
+<div class="card">
+<div class="veto">
+<p><b>① 01164 自身的統計效力幾乎為零。</b>它歷史上只出現過 3 次假破位（2025-04-09、2026-09-16、2026-10-09）。本報告所有概率數字，都是把<b>其他 12 個標的</b>的樣本分布平移過來的推導值，不是 01164 自己算出來的。不同標的的流動性、籌碼結構、漲跌幅特徵都不同，平移必然有誤差。</p>
+</div>
+<div class="veto">
+<p><b>② 01164 歷史上 3 次假破位，1 成功 1 失敗 1 待定。</b>2025-04-09 那次之後 20 日反彈 +16.9%（1.299 → 1.519）；<b>2026-09-16 那次失敗了</b>——價格在 10/9 跌破了它的低點 1.965。10/9 這次還沒被驗證。<b>n=3 完全不足以計算成功率，但它足以提醒你：這個訊號會失敗。</b></p>
+</div>
+<div class="warn">
+<p><b>③ 左側風險是真實的。</b>T+20 內再測 1.95 的概率 73.5%，跌到 1.85 的概率仍有 55.4%。如果你在 2.035 進場，大概率要先經歷一次回到 1.95 附近的過程。<b>「有底」不等於「立刻漲」。</b></p>
+</div>
+<div class="warn">
+<p><b>④ 若 1.95 帶量失守，本報告的全部結論作廢。</b>1.95 是 52 週低點，破了之後圖上沒有歷史參照。我 9 月的報告裡畫過這條紅線，現在依然有效——2.07 之上是回踩，之下是無人區。</p>
+</div>
+<div class="note-s">
+<b>其他局限：</b>⑤ 樣本年度分布不均（2025 年 19 個、2026 年 13 個），可能受該期間市場環境影響。⑥ 交易成本假設來回 0.75%（印花稅 0.10% + 佣金 + 交易費 + 徵費 + 滑價），實際因券商與單量而異。⑦ 未計入的外生變數：10 月哈薩克 Kazatomprom 相關動態、硫酸廠復產進度、下半年的交割節奏、以及美債利率路徑。⑧ 所有「T+20 內曾觸及」概率皆為 G 事件樣本（n=83）的歷史頻率，標準誤約 ±5 個百分點，且「曾觸及」不等於「收在那裡」。
+</div>
+</div>
+
+<h2>八、我會盯的四個驗證點</h2>
+<div class="card">
+<ul>
+<li><b>能否「站穩」2.09（MA10）之上。</b>T+20 內觸及概率 90.4%，所以「摸到」不算什麼；關鍵是<b>摸到之後能不能收在上方</b>。這是形態從「左側」轉「右側」的分界。</li>
+<li><b>1.95 的防守方式。</b>縮量回踩到 1.95–1.98 後收回，是洗盤；帶量直接擊穿且收在 1.95 下方，是形態失效。看量，不看價。</li>
+<li><b>成交量節奏。</b>反彈必須放量、回踩必須縮量。10/9 放量 70.3M 後 10/12 縮量至半日 12.5M，目前節奏是對的。</li>
+<li><b>板塊同步性。</b>URA 距 250 日前低 +4.63%、URNM +2.32%、01164 +4.36%——三者同步測試前低。若 URA/URNM 繼續破位，01164 很難獨自止跌。<b>這個「底」是板塊的底，不是它一家的底。</b></li>
+</ul>
+</div>
+
+<h2>九、把話說白：這是什麼樣的一個機會</h2>
+<div class="card">
+<p>如果一定要用一句話總結：<b>這是一個「形態已經給出訊號、但仍需價格確認、且統計期望偏薄」的位置。</b></p>
+<table>
+<thead><tr><th>維度</th><th>評讀</th></tr></thead>
+<tbody>
+<tr><td>形態證據</td><td class="up">充分（底背離＋假破位＋MACD 金叉＋波動收斂）</td></tr>
+<tr><td>價格確認</td><td class="amb">尚未發生（10/12 收 2.035 &lt; 假破位日 2.070）</td></tr>
+<tr><td>歷史統計期望</td><td class="amb">偏薄（假破位 T+20 淨期望約 +1.9%，扣成本後）</td></tr>
+<tr><td>相對強度</td><td class="up">改善（板塊內由最差變前段班）</td></tr>
+<tr><td>左側風險</td><td class="dn">高（73.5% 概率再測 1.95）</td></tr>
+<tr><td>失效條件</td><td class="dn">明確（1.95 帶量失守）</td></tr>
+</tbody>
+</table>
+<p>這種結構的合理應對，通常不是「重倉猜底」，而是<b>分批、留出再測前低的彈藥、並把 1.95 當作硬性的判讀分界</b>。至於倉位如何換算，可以參考 9 月那份報告的算法（風險預算反推手數）——01164 每手 5,000 股，這是散戶最容易忽略的隱形門檻。</p>
+</div>
+
+<h2>數據與來源</h2>
+<div class="card src">
+<p><b>一手數據（本地計算，非引用第三方數值）</b></p>
+<ul>
+<li>01164 日 K（前復權）：騰訊財經 <code>hkfqkline</code> 接口，1,501 根（2020-09-07 → 2026-10-12），10/12 為盤中合成 K（O 2.075 / C 2.035 / H 2.110 / L 2.030）。</li>
+<li>同業與 ETF 日 K：Yahoo Finance chart API，13 個標的（URA、URNM、URNJ、CCJ、UEC、UUUU、NXE、DNN、URG、EU、SMR、OKLO、LEU），依上市時間取 6–10 年。</li>
+<li>指標（MA／BOLL／RSI／KDJ／MACD／ATR）全部由本地腳本計算，避免口徑不一致。</li>
+<li>事件去重：10 個交易日冷卻期，僅保留每簇首日。合併樣本：假破位 91 次（有效 83）、長下影 156 次（有效 151）、貼近前低 103 次（有效 95）、隨機基準 1,221 次。</li>
+</ul>
+<p><b>消息面來源</b></p>
+<ul>
+<li>Mining Herald（2026-10-09）：ASX 鈾礦股回吐 Google/Constellation 交易漲幅；美元、殖利率與加息預期壓制資源板塊；Fed 12 月加息概率 58% → 70%。[需核實原文]</li>
+<li>EnergyReader（2026-10-06 前後）：Citi 長期鈾價基準升至 96 美元/磅；現貨對長協貼水 6 美元/磅；Holtec 撤回 100 億美元 IPO。[需核實原文]</li>
+<li>Ticker Report / Pluang（2026-10-08）：鈾與反應爐類股同步殺跌，Oklo 與 Centrus 逼近 52 週低點。[需核實原文]</li>
+</ul>
+<p class="note-s">標註「需核實原文」者為二手媒體報導，未取得原始文件；「一手數據」為本次本地抓取並計算的逐日數列。</p>
+</div>
+
+<div class="disc">
+<b>免責聲明：</b>以上內容基於公開數據和量化分析，僅供參考，不構成投資建議。文中所有概率均為歷史統計推導值，不構成對未來表現的承諾或保證，且「曾觸及」概率不等於「收盤於該價位」。市場有風險，投資需謹慎。任何投資決策應結合個人風險承受能力、資金狀況和投資目標獨立判斷，必要時諮詢持牌專業機構。過往表現不預示未來收益。
+</div>
+
+</div>
+
+<script>
+(function(){
+  var ink='#1b2430', ink3='#8b95a1', line='#e3e7ec', up='#c62828', dn='#2e7d32', blu='#1a5fb4';
+  var base={textStyle:{fontFamily:'-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei",sans-serif'}};
+
+  var D=["2026-07-02","2026-07-03","2026-07-06","2026-07-07","2026-07-08","2026-07-09","2026-07-10","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-27","2026-07-28","2026-07-29","2026-07-30","2026-07-31","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-31","2026-09-01","2026-09-02","2026-09-03","2026-09-04","2026-09-07","2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-28","2026-09-29","2026-09-30","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12"];
+  var CL=[2.43,2.59,2.66,2.52,2.5,2.47,2.43,2.31,2.36,2.32,2.29,2.13,2.17,2.27,2.48,2.53,2.45,2.47,2.34,2.39,2.34,2.42,2.485,2.635,2.795,2.635,2.75,2.745,2.63,2.66,2.6,2.7,2.815,2.72,2.655,2.72,2.97,2.915,2.885,3.035,3.06,2.87,2.625,2.525,2.405,2.455,2.44,2.46,2.43,2.6,2.39,2.28,2.135,2.015,2.125,2.095,2.27,2.225,2.175,2.23,2.17,2.11,2.065,2.065,2.115,2.08,2.09,2.105,2.215,2.08,2.07,2.035];
+  var LO=[2.41,2.44,2.51,2.49,2.42,2.38,2.42,2.27,2.22,2.28,2.26,2.07,2.1,2.17,2.29,2.45,2.4,2.43,2.3,2.31,2.28,2.38,2.435,2.51,2.645,2.625,2.665,2.7,2.605,2.61,2.59,2.555,2.72,2.69,2.625,2.68,2.69,2.89,2.765,2.95,2.975,2.76,2.585,2.51,2.38,2.435,2.42,2.435,2.395,2.41,2.38,2.22,2.12,2.0,1.965,2.04,2.125,2.175,2.165,2.165,2.15,2.085,2.045,2.03,2.05,2.01,2.045,2.085,2.18,2.075,1.95,2.03];
+  var RS=[18.3,44.6,52.6,39.1,37.4,34.8,31.2,22.9,32.0,28.7,26.3,17.1,25.0,41.6,62.5,66.0,56.0,57.9,43.3,49.2,43.7,53.6,60.4,71.9,79.5,60.0,67.0,66.4,53.2,55.9,49.0,59.1,67.9,56.0,48.9,55.6,72.4,65.8,62.1,71.7,73.0,50.8,34.6,29.9,25.0,30.7,29.9,32.7,30.5,52.5,35.7,29.7,23.5,19.5,32.3,30.7,48.5,45.0,40.9,47.2,41.4,36.2,32.5,32.5,42.0,37.5,39.7,43.3,62.8,41.7,40.5,36.1];
+
+  // ---- 图1 ----
+  echarts.init(document.getElementById('c1')).setOption(Object.assign({},base,{
+    title:{text:'01164 收盤價 vs 盤中最低價 vs RSI6（底背離）',left:'center',textStyle:{fontSize:14,color:ink}},
+    tooltip:{trigger:'axis'},
+    legend:{top:28,data:['收盤價','盤中最低價','RSI6']},
+    grid:{left:58,right:60,top:76,bottom:44},
+    xAxis:{type:'category',data:D,axisLabel:{color:ink3,fontSize:10,interval:6},axisLine:{lineStyle:{color:line}}},
+    yAxis:[
+      {type:'value',name:'港元',min:1.85,max:3.15,axisLabel:{color:ink3,fontSize:10},splitLine:{lineStyle:{color:line}}},
+      {type:'value',name:'RSI6',min:0,max:100,axisLabel:{color:blu,fontSize:10},splitLine:{show:false}}
+    ],
+    series:[
+      {name:'收盤價',type:'line',data:CL,smooth:true,symbol:'none',lineStyle:{width:2.4,color:up},
+       areaStyle:{color:'rgba(198,40,40,0.06)'}},
+      {name:'盤中最低價',type:'line',data:LO,smooth:true,symbol:'none',lineStyle:{width:1.4,color:'#9aa4b0',type:'dashed'}},
+      {name:'RSI6',type:'line',yAxisIndex:1,data:RS,smooth:true,symbol:'none',lineStyle:{width:1.8,color:blu},
+       markPoint:{symbol:'pin',symbolSize:44,label:{fontSize:10,color:'#fff'},
+         data:[
+           {name:'低2.070/RSI17.1',coord:['2026-07-17',17.1],value:'17.1',itemStyle:{color:'#8b95a1'}},
+           {name:'低1.965/RSI32.3',coord:['2026-09-16',32.3],value:'32.3',itemStyle:{color:'#b26a00'}},
+           {name:'低1.950/RSI40.5',coord:['2026-10-09',40.5],value:'40.5',itemStyle:{color:up}}
+         ]},
+       markLine:{silent:true,symbol:'none',lineStyle:{color:'#c9ced6',type:'dotted'},
+         data:[{yAxis:30,label:{formatter:'超賣線 30',fontSize:10,color:ink3}}]}
+      }
+    ]
+  }));
+
+  // ---- 图2 ----
+  echarts.init(document.getElementById('c2')).setOption(Object.assign({},base,{
+    title:{text:'事件研究：事件後平均報酬（13 標的合併，2016–2026）',left:'center',textStyle:{fontSize:14,color:ink}},
+    tooltip:{trigger:'axis',valueFormatter:function(v){return v+'%';}},
+    legend:{top:28},
+    grid:{left:58,right:24,top:76,bottom:40},
+    xAxis:{type:'category',data:['T+5','T+10','T+20','T+40'],axisLabel:{color:ink3},axisLine:{lineStyle:{color:line}}},
+    yAxis:{type:'value',name:'平均報酬 %',axisLabel:{color:ink3,formatter:'{value}%'},splitLine:{lineStyle:{color:line}}},
+    series:[
+      {name:'G 假破位 (n=83)',type:'bar',data:[0.41,3.53,6.62,19.48],itemStyle:{color:up,borderRadius:[3,3,0,0]},
+       label:{show:true,position:'top',fontSize:10,formatter:'{c}%'}},
+      {name:'I 長下影 (n=151)',type:'bar',data:[-0.11,2.96,3.62,13.35],itemStyle:{color:'#e08b8b',borderRadius:[3,3,0,0]}},
+      {name:'H 貼近前低 (n=95)',type:'bar',data:[0.06,1.48,2.78,8.68],itemStyle:{color:'#f0c9a0',borderRadius:[3,3,0,0]}},
+      {name:'隨機基準 (n=1221)',type:'bar',data:[0.70,1.75,3.41,7.25],itemStyle:{color:'#9aa4b0',borderRadius:[3,3,0,0]}}
+    ]
+  }));
+
+  // ---- 图3 ----
+  var N3=['1.80','1.85','1.90','1.95 前低','2.09 MA10','2.12 MA20','2.20','2.28','2.36','2.44 MA60'];
+  var V3=[48.2,55.4,66.3,73.5,90.4,89.2,75.9,56.6,49.4,37.3];
+  echarts.init(document.getElementById('c3')).setOption(Object.assign({},base,{
+    title:{text:'T+20 內「曾觸及」各價位概率（由 2.035 出發）',left:'center',textStyle:{fontSize:14,color:ink}},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},valueFormatter:function(v){return v+'%';}},
+    grid:{left:96,right:56,top:58,bottom:34},
+    xAxis:{type:'value',max:100,axisLabel:{color:ink3,formatter:'{value}%'},splitLine:{lineStyle:{color:line}}},
+    yAxis:{type:'category',data:N3,axisLabel:{color:ink,fontSize:12},axisLine:{lineStyle:{color:line}}},
+    series:[{
+      type:'bar',data:V3.map(function(v,i){
+        return {value:v,itemStyle:{color:(i<4?dn:'#e08b8b'),borderRadius:[0,4,4,0]}};
+      }),
+      label:{show:true,position:'right',fontSize:11,formatter:'{c}%',color:ink}
+    }]
+  }));
+
+  // ---- 图4 ----
+  var N4=['UUUU','SMR','UEC','URNM','NXE','URA','01164','CCJ','LEU','OKLO'];
+  var V4=[-23.09,-16.38,-12.06,-11.23,-11.17,-10.64,-9.21,-8.92,-6.48,-4.20];
+  echarts.init(document.getElementById('c4')).setOption(Object.assign({},base,{
+    title:{text:'核能／鈾礦同業表現：2026-09-11 → 10-09',left:'center',textStyle:{fontSize:14,color:ink}},
+    tooltip:{trigger:'axis',valueFormatter:function(v){return v+'%';}},
+    grid:{left:64,right:24,top:58,bottom:40},
+    xAxis:{type:'category',data:N4,axisLabel:{color:ink,fontSize:11,interval:0,rotate:22},axisLine:{lineStyle:{color:line}}},
+    yAxis:{type:'value',name:'漲跌 %',axisLabel:{color:ink3,formatter:'{value}%'},splitLine:{lineStyle:{color:line}}},
+    series:[{
+      type:'bar',data:V4.map(function(v){
+        return {value:v,itemStyle:{color:(v>=0?up:dn),borderRadius:v>=0?[4,4,0,0]:[0,0,4,4]}};
+      }),
+      label:{show:true,position:'bottom',fontSize:10,formatter:'{c}%',color:ink}
+    }]
+  }));
+
+  window.addEventListener('resize',function(){
+    ['c1','c2','c3','c4'].forEach(function(id){
+      var el=document.getElementById(id); if(el){var c=echarts.getInstanceByDom(el); if(c)c.resize();}
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-page-node-id="MfMMos88fXV3T9Qt3CSf6W">
+<head data-page-node-id="ycYSyLm1SZwN1jBTCi5zOW">
+<meta charset="UTF-8" data-page-node-id="Dxl7f39RJBiuaQB31jY0LO">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" data-page-node-id="2I43vjl4LA4XJ6tPESUTDX">
+<title>01164 中廣核礦業｜2.06–2.12 博反彈：概率、賠率與期望值</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --ink:#1b2430; --ink2:#5a6673; --ink3:#8b95a1;
+    --line:#e3e7ec; --up:#c62828; --dn:#2e7d32; --amber:#b26a00; --blue:#1a5fb4;
+    --upbg:#fdf0f0; --dnbg:#eef6ef; --amdbg:#fdf6e8; --bluebg:#eef4fc;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;
+       font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 64px;}
+  header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;}
+  h1{font-size:25px;margin:0 0 6px;letter-spacing:-.4px;}
+  .sub{color:var(--ink2);font-size:13.5px;}
+  h2{font-size:18px;margin:34px 0 12px;padding-left:10px;border-left:4px solid var(--ink);letter-spacing:-.2px;}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--ink);}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:16px;}
+  .verdict{border-left:5px solid var(--amber);background:var(--amdbg);border-radius:10px;padding:18px 22px;margin-bottom:18px;}
+  .verdict .tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.5px;
+    background:var(--amber);color:#fff;padding:2px 9px;border-radius:4px;margin-bottom:9px;}
+  .verdict p{margin:7px 0;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;margin-bottom:18px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:13px 14px;}
+  .kpi .lbl{font-size:11.5px;color:var(--ink3);letter-spacing:.3px;margin-bottom:5px;}
+  .kpi .val{font-size:20px;font-weight:700;letter-spacing:-.5px;}
+  .kpi .note{font-size:11.5px;color:var(--ink3);margin-top:3px;}
+  .up{color:var(--up);} .dn{color:var(--dn);} .amb{color:var(--amber);} .blu{color:var(--blue);}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0 4px;}
+  th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:right;}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{background:#eef0f3;font-weight:600;color:var(--ink2);font-size:12.5px;
+    border-bottom:1.5px solid #d5dae0;}
+  tbody tr:hover{background:#fafbfc;}
+  .num{font-variant-numeric:tabular-nums;}
+  .chartbox{margin:6px 0 4px;}
+  .note-s{font-size:12px;color:var(--ink3);margin-top:8px;line-height:1.65;}
+  .ladder{position:relative;padding:6px 0 6px 0;}
+  .rung{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed #e8ebef;}
+  .rung:last-child{border-bottom:none;}
+  .rung .px{width:96px;font-weight:700;font-variant-numeric:tabular-nums;font-size:14.5px;flex:none;}
+  .rung .bar{height:16px;border-radius:3px;flex:none;}
+  .rung .txt{font-size:12.5px;color:var(--ink2);}
+  .pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;margin-left:6px;font-weight:600;}
+  .pill.s{background:var(--dnbg);color:var(--dn);}
+  .pill.r{background:var(--upbg);color:var(--up);}
+  .pill.n{background:#eef0f3;color:var(--ink2);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr;}}
+  ul{margin:8px 0 8px 18px;padding:0;} li{margin:5px 0;}
+  .veto{border-left:4px solid var(--dn);background:var(--dnbg);padding:12px 16px;border-radius:8px;margin:10px 0;}
+  .veto b{color:var(--dn);}
+  .src{font-size:12.5px;color:var(--ink2);}
+  .src li{margin:4px 0;}
+  .disc{margin-top:26px;padding:14px 18px;background:#eef0f3;border-radius:9px;font-size:12.5px;color:var(--ink2);line-height:1.7;}
+  code{background:#eef0f3;padding:1px 5px;border-radius:3px;font-size:12.5px;}
+</style>
+</head>
+<body data-page-node-id="jpphgAknxZ1HV8czCpZkeD">
+<div class="wrap" data-page-node-id="FDLAtw6LZf7i4DJxxSKBlB">
+
+<header data-page-node-id="l9RdP7XZ50UWRdInyzoAqD">
+  <h1 data-page-node-id="G160ZluxGp46N54UUWsBtS">01164 中廣核礦業｜「2.06–2.12 值得博反彈嗎？」</h1>
+  <div class="sub" data-page-node-id="3ouiIb54xHBLteImmbcMuk">概率、賠率與期望值的完整計算 · 數據截至 2026-09-11 港股盤中（現價 2.235）· 統計樣本 2,701 根前復權日K（2015-09-22 起）</div>
+</header>
+
+<div class="verdict" data-page-node-id="H01oe3FgV0U4Aktpo9fxCX">
+  <span class="tag" data-page-node-id="J73RjQ5HzZu6rIPcDlR3Yb">結論先行</span>
+  <p data-page-node-id="qO52EXQ9RJus4vJJSYta2j"><b data-page-node-id="b3LeKUwjHOU2YyVxDcjAhv">直接答案：現在（2.235）不值得追。若真的回落到 2.06–2.12，值得——但只能「小倉位 + 寬止損」地博，而且止損寬度決定生死。</b></p>
+  <p data-page-node-id="aqkGbJS6Xdermd6LKgZeG8">把歷史路徑攤開算完，這題的答案不是「值 / 不值」，而是<b data-page-node-id="iEntmvsyaYFa21Itfx7GMd">一個幾何問題</b>：在這檔股票 8.0%/日的 ATR 下，<b data-page-node-id="tGqWyZVFDExczXaYorKfJV">任何小於 −9% 的止損，被掃掉的概率都超過一半（−5% 止損：68%；−9%：53%）</b>；而最優組合（止損 −12%~−15%、目標 +12%）在 20 日窗口的<b data-page-node-id="UCuWMSoBhn3rU4l8IpV6gI">達標概率 52.5%~55%，淨期望 +2.3%~+2.4%</b>。</p>
+  <p data-page-node-id="IzwsgCwGpPli23sjETDvEY">同時必須說清楚一件反直覺的事：<b data-page-node-id="Zn3tJrNS4AOosLsPBMB3oq">「超賣」本身並不構成進場理由。</b>事件訊號的期望值（+0.76%）與隨機進場基準（+0.94%）沒有統計上可辨識的差異——真正有價值的是<b data-page-node-id="bKV3pnIzaVpQDHzebR1QYw">位置</b>（貼近 52 週低點）與<b data-page-node-id="UAaJvclVHLCqKCncd8GhxI">止損幾何</b>，不是「跌得夠多」。</p>
+</div>
+
+<div class="kpis" data-page-node-id="6sc7TtpYHoXWQuCfhBBjbO">
+  <div class="kpi" data-page-node-id="RP8PS2AmxjzdFj6wZ4W7Wn"><div class="lbl" data-page-node-id="J6MgsyJGaXlEKQqWYaiURA">現價（9/11 盤中）</div><div class="val num dn" data-page-node-id="ICfgrZE1V2ohjrEcE8iL7v">2.235</div><div class="note" data-page-node-id="EHM4uwCsvznqueHvP7DmP5">當日 −6.49%｜前收 2.39</div></div>
+  <div class="kpi" data-page-node-id="oQOSnGoFY3wgbTkcGxtHbs"><div class="lbl" data-page-node-id="AUWhLLWu7jdCS2R25Pw4T7">ATR14（日波動）</div><div class="val num amb" data-page-node-id="X1PJAJMO05G88wGOcE7YG5">8.02%</div><div class="note" data-page-node-id="pFCGDpJQQCmB9UVhtOt6W8">0.179 港元／日</div></div>
+  <div class="kpi" data-page-node-id="ZALXMMS44csrmH65AOuZ46"><div class="lbl" data-page-node-id="m7m2pKsBbo7sXnJXsnMvDB">52 週區間</div><div class="val num" data-page-node-id="c2qIgFKEX1FEyq8804EUiw">2.07 – 5.646</div><div class="note" data-page-node-id="U3PTGZq4inxyqgUjfNzHGu">距高 −60.4%｜距低 +8.0%</div></div>
+  <div class="kpi" data-page-node-id="WnxVy5WiqCLZ4TFo183n2E"><div class="lbl" data-page-node-id="NSP31rZuMin7OD1ti9mSFK">RSI6 / 布林下軌</div><div class="val num" data-page-node-id="DaDqpBnAIgYs3bCPRMtwwL">27.9 / 2.189</div><div class="note" data-page-node-id="3LxupqfD8YPglBFSiR6nMt">已進入超賣區</div></div>
+  <div class="kpi" data-page-node-id="FMVCPsisjBHsOol9d4PYps"><div class="lbl" data-page-node-id="hFwAeXILecFnZWw34EfNLv">10 日內回落至 2.09 機率</div><div class="val num blu" data-page-node-id="gCCOcsoYAb75gFB7U2dcL9">48.5%</div><div class="note" data-page-node-id="lwAGSxl7zgHpkSfc6Cp0IY">20 日內 63.6%</div></div>
+  <div class="kpi" data-page-node-id="Z9LH4EK79tS8xKBl8iOvpc"><div class="lbl" data-page-node-id="75F7LPe4SvOc6QBfey50Im">最優組合淨期望</div><div class="val num up" data-page-node-id="BSBW2LmCOn7F0DjXUNfagv">+2.4%</div><div class="note" data-page-node-id="hJiq232pXhNn3CGGHo8NWA">止損 −15%／目標 +12%</div></div>
+</div>
+
+<h2 data-page-node-id="LFABaUBmprBQN5dFQaHZOT">一、先問一個被忽略的問題：你等得到 2.06–2.12 嗎？</h2>
+<div class="card" data-page-node-id="vOj7c3yHWAyAEGxvGWYbTb">
+  <p data-page-node-id="VHMzmL3CRjEB2dkw3smqSo">博反彈的第一個風險不是虧錢，是<b data-page-node-id="Qlr9RcVNCGtT63WWbXUlgC">根本沒成交</b>。現價 2.235 到 2.09 還有 −6.5%，這不是一個小距離——但以本股 8%/日的 ATR 而言，一天就能走完。</p>
+  <p data-page-node-id="K3RQlUoCtZuDJEcTaz1ZEU">用「RSI6&lt;30 且收盤低於 MA60」的 67 個歷史事件（已做 10 日冷卻去重）統計後續最大不利偏移：</p>
+  <table data-page-node-id="E16SpxVgImHhvOUCyR9wPB">
+    <thead data-page-node-id="XBYhmjfNGDv1PJgmvurudq"><tr data-page-node-id="ClQV9InvWOZe0DmGcpSjd5"><th data-page-node-id="jmLojZwhOCZukVx0bi8siv">觀察窗口</th><th data-page-node-id="tUEQUWrLSYF0KgH7mXLYz0">曾跌至 2.146（−4.0%）</th><th data-page-node-id="QGChDNC1aHKhpeGI9P7dok">曾跌至 2.090（−6.5%）</th><th data-page-node-id="3cK6qfAUDWfICch7dOrKfm">曾跌至 2.056（−8.0%）</th><th data-page-node-id="tTEAQ6wpphpAoLU9f8djVA">曾跌至 1.989（−11%）</th></tr></thead>
+    <tbody class="num" data-page-node-id="u2fORwdldCv0wQ598Cj7eZ">
+      <tr data-page-node-id="6JpDs0cPIu9FMw60PBko8k"><td data-page-node-id="TwqNEnofJtG0xS5WaSoPLY">5 個交易日</td><td data-page-node-id="Rk0DuFjvY6YAjxF6NTa3U4">49.3%</td><td data-page-node-id="sTziODxsbZAFhk6oQpZ3Kz">38.8%</td><td data-page-node-id="cqKeIw5LL3o3n2BX4wtbIt">28.4%</td><td data-page-node-id="ol9f9Qg2nRoyCHEccm9E1Q">11.9%</td></tr>
+      <tr data-page-node-id="tzt55tHW2DRurp04LrJ7Tp"><td data-page-node-id="8oqnSkJcANxcnYkCbgCVVi">10 個交易日</td><td data-page-node-id="wqF74yFDGNDOJaEtSYfcnt">59.1%</td><td data-page-node-id="msWCu9WgkI84cMHBdpioyr"><b data-page-node-id="LuDlwUAH3mbRfo3TZ1F9Y9">48.5%</b></td><td data-page-node-id="lvrEGMT2bF9SF7AS2G4t12">39.4%</td><td data-page-node-id="A0oGgMnhrfXi2ZEBTBQ8Bk">27.3%</td></tr>
+      <tr data-page-node-id="iU3G1BSYIfGeED8tb0YJB0"><td data-page-node-id="UXE0t7q1phb5w0yypxPNH9">20 個交易日</td><td data-page-node-id="qbVGTWZK9ToMarJSeWiT6f">72.7%</td><td data-page-node-id="xQmtR3IdVnYMoV4NxHskGP"><b data-page-node-id="G7CJcFb5Clj0FNUMf7FPqH">63.6%</b></td><td data-page-node-id="rfAEjpSRuus6wDxEW9VE05">56.1%</td><td data-page-node-id="QDZ5jYV7MCJGVLIXgHrEGE">40.9%</td></tr>
+    </tbody>
+  </table>
+  <p class="note-s" data-page-node-id="92C6EhzFbV2cXCJEAVWf6d">口徑：以事件日收盤為基準，統計其後 N 日內盤中最低價是否觸及該跌幅。<b data-page-node-id="ORibOlnY0fXowlxsz5Qx9x">注意這是在「現價」尺度上做的情境平移，屬推導值而非直接觀測值</b>——因為歷史上事件日的價位各不相同（1.4～5.6 港元），此處將其標準化為相同百分比跌幅後對應到當前價位。</p>
+  <p data-page-node-id="AI6FDtx35P36uBpTmeaCeV">換句話說：<b data-page-node-id="gtIY3Fhv35NJqLXM2JFBOV">十天內見到 2.09 的概率約一半（48.5%），二十天內約六成四（63.6%）。</b>耐性在這裡不是美德，是必要條件——因為從現價直接追進去，等於把入場位選在了支撐區的上方 6.5%。</p>
+  <p data-page-node-id="xO4i1zlMqt6RxeXiHDVcqo">另一個角度更直接：<b data-page-node-id="lrKlPtWu6825NZnrBbSeTl">以現價 2.235 出發，20 日內「先摸到 2.09」的概率是 53.0%，「先摸到 2.42」是 43.9%。</b>下行的引力略大於上行的張力。</p>
+</div>
+
+<h2 data-page-node-id="47E5jNPk3LHdfEYSJEtmmx">二、歷史類比：五種「超賣」定義各自的成績單</h2>
+<div class="card" data-page-node-id="zylYbwnf8KgavKdwOlnDqB">
+  <p data-page-node-id="C2CpRHmKrAn0U2FenQOEZE">為避免用單一規則過擬合，我同時建了五組事件定義（皆以 10 個交易日冷卻期去除重複計數），並以各自事件日的收盤價為基準計算前向報酬：</p>
+  <table data-page-node-id="nA9NSTgv4Zq8cU232bBTbC">
+    <thead data-page-node-id="9x4dLlS0VCZhbRCZG9b4UH"><tr data-page-node-id="kwGrVYnV21YdIn7FBhOUQE"><th data-page-node-id="yyvRohi3HPWoyYqiBqLAak">事件定義</th><th data-page-node-id="MJCcQY6aUtpND82J24mI0Z">樣本 n</th><th data-page-node-id="qBNsFsBUDlAok0CVEKuvnc">T+10 勝率</th><th data-page-node-id="CA6bUABnbScan24UYY95vH">T+10 均值</th><th data-page-node-id="fvE7EEMpPrxyVGxGm3kVVU">T+20 勝率</th><th data-page-node-id="HOSaCLMq8PpZoXYHWYeBYl">T+20 均值</th><th data-page-node-id="XvUccJKJCB966czF7ABBHJ">T+20 平均最大浮盈</th><th data-page-node-id="eeHrWfG3j8Htkv6s8BrEYb">T+20 平均最大浮虧</th></tr></thead>
+    <tbody class="num" data-page-node-id="BJ7O4ay235A8eCB7K4tQA6">
+      <tr data-page-node-id="NVluYikF4WY3aJ7BMba5Xm"><td data-page-node-id="rdHx2xKMbmVSOCQVs32KQU">A：RSI6&lt;30 且收盤&lt;MA60</td><td data-page-node-id="yUMAUrTfFi9SSx55DRpglr">67</td><td data-page-node-id="LGmzkeFCAEaGzV7mPYBml4">47.0%</td><td data-page-node-id="IR7jD9lH98Dk7M82CFgh4z">+1.06%</td><td data-page-node-id="cqn9A4eDaEEpUnbUybr7cD">48.5%</td><td data-page-node-id="RAe2hVOvXj3KmIALvEqbfF">+2.60%</td><td data-page-node-id="1HwmTxYUOPbfSTGVRAnTKH">+15.86%</td><td data-page-node-id="EDVnmSJrGSxLIWUSYc6jBp">−10.86%</td></tr>
+      <tr data-page-node-id="WJNHK4T78LHY5j8QgW0aWE"><td data-page-node-id="oCKE6N4FhpVY1KFBThfvbP">B：A + 收盤跌破布林下軌</td><td data-page-node-id="e5wALriQPwXb6CEh7OXTCg">41</td><td data-page-node-id="FvoWauzaFS82KTfkjGIDVF">50.0%</td><td data-page-node-id="wLSvPSRo3Kmsny0MFTY3aI">+2.15%</td><td data-page-node-id="2W1cRGFl5zv0zddpqbrzGU">47.5%</td><td data-page-node-id="0sfe6cRxEjo2hUfkJtFomY">+1.98%</td><td data-page-node-id="YR2tM7Gmp8IK3bjkHbcvSb">+15.30%</td><td data-page-node-id="obWiZ8xFDDTILVHoDdjBLr">−10.59%</td></tr>
+      <tr data-page-node-id="ycfDrFvYZOJM2wIBIDkPRn"><td data-page-node-id="3wCtiEL4JfnjbsGH6QSsXB"><b data-page-node-id="vuoXPWbroklIYO3P3ooD27">G：距 250 日低點 ≤5%</b></td><td data-page-node-id="sJW7B1Tv1jZlCV55nivAeJ"><b data-page-node-id="PKwlwHh8pXtFEXHBhILtPw">13</b></td><td data-page-node-id="Jx7vXodMRoHHP6RspF31IL"><b data-page-node-id="BKY20rLCHeZWfPHbqCRQ7z">53.8%</b></td><td data-page-node-id="GwucXom7LPBakILED5nA35"><b data-page-node-id="AN1ixGGoQ9WxP6rV8JNFPu">+3.34%</b></td><td data-page-node-id="4kKwpoQXOGvAMCAOFoOEDX"><b data-page-node-id="7wsg4vC2OfEGDsSPCyISZO">53.8%</b></td><td data-page-node-id="qCOAdxiXqoPkURld1uFYYK"><b data-page-node-id="lQcMCMOIEXoT1ce6KGPplm">+2.62%</b></td><td data-page-node-id="S66gessU6HIg3PIRRSY3vX"><b data-page-node-id="C2nlrreW8RjAr0XmE4tWwc">+16.15%</b></td><td data-page-node-id="6GiUKpyaztlJLhTD7txYiD">−11.58%</td></tr>
+      <tr data-page-node-id="BjShxGqr5WzdgVCB8F046z"><td data-page-node-id="d9HJtzdF5l6mPaDxrn1Smt">GH：G ∪ 回撤≥40% 且超賣</td><td data-page-node-id="XEYG0l3pIXgZ9oMXKriC0C">41</td><td data-page-node-id="LYbBxuSbFkhzvkNSKvirzd">—</td><td data-page-node-id="Ya8tERxk5VrOzDQLOdKbb6">—</td><td data-page-node-id="v0rwDNenpzyAjf9imcgCRp">—</td><td data-page-node-id="7sw9XVotWXpZay6TziuLit">—</td><td data-page-node-id="idCNaYEpMcFJZYBEATAz9A">+14.18%</td><td data-page-node-id="1z1htD8hfehLrjBLev5QiF">−11.06%</td></tr>
+      <tr data-page-node-id="uALihPyX7HkLNy8lp1aZhP"><td style="color:var(--dn)" data-page-node-id="7ls3fBSQU0Q4J0lTp9jTZx"><b data-page-node-id="yltgV3kShv7GMlO6ilH6CN">F：收盤創 250 日新低</b></td><td style="color:var(--dn)" data-page-node-id="IMFRaA5zeAIA4iO5p5bBWz"><b data-page-node-id="dLkofmG52vm44dGeemnICr">4</b></td><td style="color:var(--dn)" data-page-node-id="LAYskiqoB9oAKJaovuyE3N">0.0%*</td><td style="color:var(--dn)" data-page-node-id="wYedTZlCFnhqZpCfDDgd78">−7.84%</td><td style="color:var(--dn)" data-page-node-id="9T6At3ImLiEmmeOlHvhDYU"><b data-page-node-id="RnaeD15HaIzZ65llBoGqN7">0.0%*</b></td><td style="color:var(--dn)" data-page-node-id="1DxbShukxf7CllqDEXbGnP"><b data-page-node-id="3M87apRrxIDP8HCSVCs1yp">−11.64%</b></td><td data-page-node-id="zPcVyDb9hOapRrcPSy40cK">+9.04%</td><td style="color:var(--dn)" data-page-node-id="PMIqF52X2ClICQ4EmlXK9q"><b data-page-node-id="owALgbDc5peSUfIN4ykqgF">−18.25%</b></td></tr>
+    </tbody>
+  </table>
+  <p class="note-s" data-page-node-id="iPhBiBVczp2jzuDErH5p0h">* 事件 F 樣本僅 4 例，勝率 0% 不具統計顯著性，但方向極具警示意義：四例中 T+20、T+40 全部收跌，平均 T+40 報酬 −19.70%、平均最大浮虧 −31.58%。<b data-page-node-id="js1MueZziVPBGE8JyCFfsD">它不是「買點」，是「趨勢轉弱確認」。</b>我把 F 列出來不是為了下結論，是為了標記一條紅線。</p>
+
+  <h3 data-page-node-id="bAEIM9D3QXA6b6xb881trZ">三個由這張表讀出來的判斷</h3>
+  <ul data-page-node-id="dE0NDprvTBHOFcipt8qamO">
+    <li data-page-node-id="AFomNXSAhRxUXsvhxBISdx"><b data-page-node-id="DzjkxlsLKd9axawUoXsaE3">事件 G（貼近 52 週低）明顯優於事件 A（純超賣）：</b>T+10 均值 +3.34% vs +1.06%，T+10 勝率 53.8% vs 47.0%。<b data-page-node-id="lXi9FzmXqKghd3D4EpkbLo">決定回報的不是「跌得夠深」，是「跌到有歷史籌碼的位置」。</b>2.06–2.12 之所以值得討論，正因為它落在 52 週低點 2.07 的鄰域。</li>
+    <li data-page-node-id="fzzNvN6lxd10etUVmCLpWT"><b data-page-node-id="RKHCRTuAl7IniHzLWmc0ls">「平均最大浮盈」始終大於「平均最大浮虧」約 4–5 個百分點，但代價是先承受 −11% 級別的浮虧。</b>這是本股超賣後的固定結構：<b data-page-node-id="7nFe0Yvb7NDmLQvpT7cdXi">能忍得住 −11%，才吃得到 +16%。</b>忍受力就是這筆交易的成本項。</li>
+    <li data-page-node-id="3VKcKiDkOFI126hkyleaXV"><b data-page-node-id="8Oo0a8D0GhTPTmVbM7ts5y">破 250 日新低（事件 F）與貼近 250 日低點（事件 G）是兩種完全不同的東西</b>——一個是 −19.7%，一個是 +2.6%。2.07 這條線的「守得住 / 守不住」，比進不進場更重要。</li>
+  </ul>
+</div>
+
+<h2 data-page-node-id="1NFuaFq7i3tBo6wI4tMQum">三、核心：止損幾何決定一切（路徑概率矩陣）</h2>
+<div class="card" data-page-node-id="b7SwPWXeKKND6FlQjLEyCW">
+  <p data-page-node-id="tFnFODnCw4HjOsy8IaDZYM">「超賣後 T+20 平均 +2.6%」這種統計沒有用，因為它假設你能<b data-page-node-id="y3b1DiTi4WGYk57DWpWftH">一直持有到第 20 天</b>。真實交易會被止損打斷。所以我做了路徑模擬：從每個事件日的收盤進場，逐日檢查盤中高低價，判定<b data-page-node-id="QvSxgZNJKmBTgG25iuYfGq">目標與止損誰先被觸及</b>（同日雙觸則保守計為止損）。</p>
+  <p data-page-node-id="OQf5twOwBrR1HwuPfgnNJX">下圖固定<b data-page-node-id="35z4DodKMbCyrmrDr7AzFc">目標 +12%（對應 2.09 → 2.34）</b>，只變動止損寬度，看它如何改寫勝負結構（事件集 GH，n=41）：</p>
+  <div id="chart_width" class="chartbox" style="width:100%;height:340px;" data-page-node-id="ISFjZAMkvSzuEAKY0CssTB"></div>
+  <div class="note-s" data-page-node-id="5V5Il5psq3gYh2bmbnrWQg">讀法：止損從 −5% 放寬到 −15%，達標率由 42.5% 升到 55.0%，被掃率由 55.0% 降到 17.5%，淨期望由 +1.65% 升到 +2.42%。<b data-page-node-id="Gxpebpo6ZwVyDBF43Z8TDI">放寬止損不是「認賠更多」，而是「買到不被噪音掃出的權利」。</b>但超過 −15% 後達標率不再提升（目標已經被觸及或已被掃），邊際效益歸零。</div>
+
+  <h3 data-page-node-id="9itq6Pq6oci7GdxEI2iMvV">完整矩陣：止損 × 目標 → 淨期望值（扣除 0.75% 來回成本）</h3>
+  <div id="chart_heat" class="chartbox" style="width:100%;height:330px;" data-page-node-id="1wHAIupqok5PacrgyZoNPy"></div>
+  <div class="note-s" data-page-node-id="MGbwQwOxClZkFkAoMosWSl">顏色越紅（正）代表期望值越高，越綠（負）代表越低。事件集 GH，n=41，窗口 20 交易日。<b data-page-node-id="ENxFkP0tDKgGdATRphbuF6">熱區集中在右下角：寬止損（−12% ~ −18%）搭配中等目標（+12%）。</b>左上角（貼價止損 + 大目標）是最糟的區域——這正是多數散戶的默認打法。</div>
+
+  <h3 data-page-node-id="NO5Ofhzt0TAzvjCBhuKLNy">完整的達標率一覽（事件集 GH）</h3>
+  <table data-page-node-id="NiDcGi3rsLAUs2DAxPxPne">
+    <thead data-page-node-id="3dLLkBOE5CNDSxmDCudcqk"><tr data-page-node-id="MC9AM3nJFHpHGqyVS19ja6"><th data-page-node-id="QlF7OwjLHUIlMOoRPpCn5K">止損 \ 目標</th><th data-page-node-id="jjTM8QfNsTZh07yuCo27Or">+8%（2.26）</th><th data-page-node-id="Q5AgqwobPNDGTH8rZALVDq">+12%（2.34）</th><th data-page-node-id="uAIhtLrxEacYV2tDXjlU1B">+16%（2.42）</th><th data-page-node-id="sHFlCC4Ec8fkNVTRLlEoCw">+20%（2.51）</th></tr></thead>
+    <tbody class="num" data-page-node-id="m5fROPuZ1HIBvG0g03o407">
+      <tr data-page-node-id="TRoBmIp6gWFVnsuHUT1ES7"><td data-page-node-id="DRZh0YYmwoAIJ1PsbqknA3"><b data-page-node-id="jG03uD5FeS5Hs4MNCaSgzP">−5%（1.99）</b></td><td data-page-node-id="x6DOnc4TPXGsivjKoCSFaT">45.0%<br data-page-node-id="x9LNtCXehC72hGtPmgqH66"><span class="note-s" data-page-node-id="WXAMrmwqobtouJ5Rco1TgE">E +0.28%</span></td><td data-page-node-id="YOMJ32HyuFqq9cJ93Yv49p">42.5%<br data-page-node-id="luQwaIb4RIWlK5YNGHttNb"><span class="note-s" data-page-node-id="V3swx0RtykTfoO05gPAZHH">E +1.65%</span></td><td data-page-node-id="y0JOF5AG9fS7NLlgHGYtFn">22.5%<br data-page-node-id="0OpR5qYatyx7WGrtXfggxu"><span class="note-s" data-page-node-id="djgHbuFqDIZ9eVgkO2Zz7D">E +0.37%</span></td><td data-page-node-id="HSepQPkXhv14QGl31OR7rp">15.0%<br data-page-node-id="VETabPHZWTIylz4paf7pjV"><span class="note-s" data-page-node-id="sCRnisnzn6USP5KhADWv1T">E +0.25%</span></td></tr>
+      <tr data-page-node-id="IyG3YPcgBmkNIW4BGtl0RL"><td data-page-node-id="xvqsGWvunw74LpfY56rzgJ"><b data-page-node-id="t3ARKwZLTKMFAKaSEiLeLF">−7%（1.94）</b></td><td data-page-node-id="OFPc8mDRi111CbG2hy5yQc">45.0%<br data-page-node-id="3roUKsmr3r6tWdReIg3uW1"><span class="note-s" data-page-node-id="U6MzcdedAKj93u7l1JpERW">E −0.77%</span></td><td data-page-node-id="ejDE7RYDayYLrzNTzIkiET">42.5%<br data-page-node-id="GK6HfTQcBRauMZpp2IIlae"><span class="note-s" data-page-node-id="ybrPOgofHKkpkfpwLdNBNH">E +0.78%</span></td><td data-page-node-id="F1FL0BKHLN1a2Ki8lWxm0D">22.5%<br data-page-node-id="pJGIdCDpTsqSCJtFXqWOl8"><span class="note-s" data-page-node-id="FHnjvC65airhVICOYXo69x">E −0.70%</span></td><td data-page-node-id="as9hpMnLdDtJaJzceO8SI1">15.0%<br data-page-node-id="gwr09rcHChhVrN2Amq0I6G"><span class="note-s" data-page-node-id="7jjUVFvTBcIMF2lRQGDu9D">E −0.87%</span></td></tr>
+      <tr data-page-node-id="Ms7gsDMl3MtaUxzkDoktcN"><td data-page-node-id="yAzWkl47xCsy41hXAFlDvD"><b data-page-node-id="EhrfXXED8asvHLEL5HG86p">−9%（1.90）</b></td><td data-page-node-id="hYZDVJE5uBJWlqPhELcvPD">55.0%<br data-page-node-id="XTbzivvBc4S1WwilPQCTAP"><span class="note-s" data-page-node-id="FdDcmtOeZydehLsdqf6Hfn">E +0.38%</span></td><td data-page-node-id="pe3xilMJejeOmQiiKI4IM8">47.5%<br data-page-node-id="B0zhmfL7hK3UH2a3G2tVGb"><span class="note-s" data-page-node-id="X0BvHOMWSpF8FIjUShNVeI">E +1.65%</span></td><td data-page-node-id="nubyVGZMw0vEDAbkJlyHyy">25.0%<br data-page-node-id="LUPwf7b2N1QErN2KItEurl"><span class="note-s" data-page-node-id="wHMEHE9kFUwKDlFYBe55EA">E −0.46%</span></td><td data-page-node-id="fv4LUgx1FhA4gzHrAejbOF">17.5%<br data-page-node-id="SjxhHs53Wh5qhkcRN979Ez"><span class="note-s" data-page-node-id="RuXo0eM3hEFNRXZ5pmG1k9">E −0.58%</span></td></tr>
+      <tr style="background:#fdf0f0" data-page-node-id="6ca9em5ujU7nau26hNMXa0"><td data-page-node-id="Kpsr09gKGlHz2mYPZOwwTT"><b data-page-node-id="Mb1zNvMKsVUqiT0YwRheAF">−12%（1.84）</b></td><td data-page-node-id="JRonsJm0M06sC9bm4rtrGE">62.5%<br data-page-node-id="WhY5mKtEZTSKuZd8vEquz4"><span class="note-s" data-page-node-id="Kh8RNERQ1Vd1IVnv97u4R4">E +0.92%</span></td><td data-page-node-id="4Z3j6B3FWaOaMGQb6Sv90Z"><b data-page-node-id="WuFdLKRewqumcXC8r0iURQ">52.5%</b><br data-page-node-id="Ubpb1djX5sQHPHOAN02sYA"><span class="note-s" data-page-node-id="rP7Ev4qECOPgmILhDKWQfH">E +2.28%</span></td><td data-page-node-id="2fq7JgJ7HrN8iy5ZGTh6EA">27.5%<br data-page-node-id="t4Gnyxl4rXlvLGn95zCCqb"><span class="note-s" data-page-node-id="OwrCRGuRO0GiOmpZLETF34">E +0.19%</span></td><td data-page-node-id="h60XfgHe54bLn8PkBdMAd1">17.5%<br data-page-node-id="B8NEzb7YOQ5XhPdq9SCxnv"><span class="note-s" data-page-node-id="VHqcvOJBshNxeV0wxJYdIi">E +0.02%</span></td></tr>
+      <tr style="background:#fdf0f0" data-page-node-id="XMO3gtFN1HYFXEtjxyg30e"><td data-page-node-id="BI5is69lICxKE1UiU3wY3n"><b data-page-node-id="UOGbNJxtDoycEjMiiqDLlX">−15%（1.78）</b></td><td data-page-node-id="OzaiYVJt1mqEjL4k5HUrBr">67.5%<br data-page-node-id="1WNeATjG361naw5aCPYFXY"><span class="note-s" data-page-node-id="tFN8hieXsEmK0udScaw6xE">E +1.44%</span></td><td data-page-node-id="7g8FIZZIfW5uMTVQQKkNEZ"><b data-page-node-id="8ZN33iaN52xCaApqR2rBIe">55.0%</b><br data-page-node-id="EuTpdHADRQUEuROsjbpQp0"><span class="note-s" data-page-node-id="khnE3crZbv15l5cA01gEgf">E +2.42%</span></td><td data-page-node-id="LRHfHYn1nfvpAvYQlRcxbx">30.0%<br data-page-node-id="zyOTzJCHMjsBUncZblxhAd"><span class="note-s" data-page-node-id="Wf3BhIu2po2StMWynECH1K">E +0.21%</span></td><td data-page-node-id="z58GBqYSoMaygeKu7cVxAB">17.5%<br data-page-node-id="aQdSr8DvA8R5RnsT353Yea"><span class="note-s" data-page-node-id="NwyjSuwdwMSROTz74GSDjk">E +0.03%</span></td></tr>
+      <tr data-page-node-id="cdUYlCZrQyUNph6kMessyc"><td data-page-node-id="5KSFHPAFI2H5IAlLj0Qty0"><b data-page-node-id="lFFJnZFXumiNFEGTOgoOlb">−18%（1.71）</b></td><td data-page-node-id="Prab45p6N5GrcK9IhAtqNd">67.5%<br data-page-node-id="6IwIMJOycufcmFrkn6MEtC"><span class="note-s" data-page-node-id="y3sSixxSRPajCTrj9Cw09L">E +0.91%</span></td><td data-page-node-id="JdjeVwy7UoMRZpXs5r356j">55.0%<br data-page-node-id="nWMUYqXNFusdsdZJh9Ek9U"><span class="note-s" data-page-node-id="DEsQlGQkzvu78NQQ2NLwSK">E +1.90%</span></td><td data-page-node-id="3WtZYHeYKk5NmcVNJhWIK2">30.0%<br data-page-node-id="KhwT0490ywNCft0L6mj8GY"><span class="note-s" data-page-node-id="cQcmI09wGOjGOYSQcVhAq4">E −0.54%</span></td><td data-page-node-id="1wXXCbFeNmKc0OwBCqfaJB">17.5%<br data-page-node-id="G5pZFqUIMsjRzxFzNs8PEJ"><span class="note-s" data-page-node-id="lAAUIvohdIT4EqY5IdRoYx">E −0.72%</span></td></tr>
+    </tbody>
+  </table>
+  <p class="note-s" data-page-node-id="4vsSn9CayA7pKVeQ8EprxV">括號內為對應價位（以進場 2.09 計）。E = 扣 0.75% 來回成本後的淨期望值。<b data-page-node-id="gMDrXMTaFeSSE2E1NfzxBi">兩格紅底為最優區：止損 −12%~−15% 搭配目標 +12%，淨期望 +2.28% ~ +2.42%，達標率 52.5%~55.0%。</b></p>
+</div>
+
+<h2 data-page-node-id="gNBdqFdUrFVbs002qIKpFe">四、為什麼「貼價止損」在這檔股票上是自殺</h2>
+<div class="card" data-page-node-id="7EVE38heAqCnykZaTscxTP">
+  <p data-page-node-id="6v7LKepgZINeOgXvMjdqDI">把事件後的<b data-page-node-id="Sn8FuFIZBza83gVOZG4vY3">最大浮虧（MAE）</b>與<b data-page-node-id="90ZVDDBjTHneH3mXzCaUiY">最大浮盈（MFE）</b>分布畫出來，會看到一個讓人不太舒服的對稱性：</p>
+  <div id="chart_exc" class="chartbox" style="width:100%;height:330px;" data-page-node-id="fETDjAdp64DM3ESMjqM3Xf"></div>
+  <div class="note-s" data-page-node-id="qyHifq2TUkYLb7Sk9MFXnV">事件集 GH（n=40），窗口 20 交易日。左側綠柱＝曾出現該幅度浮虧的概率；右側紅柱＝曾出現該幅度浮盈的概率。</div>
+  <table data-page-node-id="l3GwwUJHgAIdzqO7GeAwxO">
+    <thead data-page-node-id="rJGfGuqwCpU6Qt4SFVGrSM"><tr data-page-node-id="vgO0WPTJo5o7qMeATuH0BC"><th data-page-node-id="ECOMSWoMBn1qGTmRFhLiQp">曾觸及的浮虧幅度</th><th data-page-node-id="5ZUulLiGK9K6yHVQ96pQBg">−5%</th><th data-page-node-id="rxapUlzBDPx3RoGrekmj3i">−7%</th><th data-page-node-id="OJOaWuioZiAcY30pY6ZuVI">−9%</th><th data-page-node-id="edwLsQyyTEKJZxJCwLQKCs">−12%</th><th data-page-node-id="j8hTWAlolNsP4qQoRJ4rsv">−15%</th><th data-page-node-id="wVfb5wOo86nlI2wi1TyfzY">−18%</th><th data-page-node-id="UgbgnumpRMkyrWfiiCQ6Vv">−20%</th></tr></thead>
+    <tbody class="num" data-page-node-id="BN3FX4pJrBNuMXinNkOzXU"><tr data-page-node-id="2BhH2rtMtD0DYb4V10vRzO"><td data-page-node-id="TfzivHvalWtN0jlT1fBuxO">發生概率</td><td data-page-node-id="Jrl1C34vdWZ6pSln0ZKbV5">67.5%</td><td data-page-node-id="jqJjUh9RHXh5nh8F09uoSL">65.0%</td><td data-page-node-id="60U5Sc8OUGZ96bn0cQZFGE">52.5%</td><td data-page-node-id="hXDBHLNVj3gAa1B4KMTg5f">37.5%</td><td data-page-node-id="jqSE59GnhO2llE41cSIIEt">25.0%</td><td data-page-node-id="MDHsPyRyFICTdW7nc7MPew">25.0%</td><td data-page-node-id="wIDAI94UvByJtDwVEzg2EU">20.0%</td></tr></tbody>
+  </table>
+  <table data-page-node-id="dU7coQKhrHtCM1apbc31xB">
+    <thead data-page-node-id="8G2m7P3ClNujMebCIQVLIA"><tr data-page-node-id="CoS6j5kKOlh5Dyl06hEhoJ"><th data-page-node-id="y7nPttVETQ9Z1we0Qhowm7">曾觸及的浮盈幅度</th><th data-page-node-id="P4fpIOXN2dOMaEKRtN4SC3">+8%</th><th data-page-node-id="AD5ZwpAjw2kOn98nstLhvi">+12%</th><th data-page-node-id="GJLYE0UFHrOjLn7ZFkrBvj">+16%</th><th data-page-node-id="woxN3pQ8BwyCjjWy76fDqS">+20%</th><th data-page-node-id="krANcHQDoqJHX1TFgm3NdB">+25%</th></tr></thead>
+    <tbody class="num" data-page-node-id="FaNDwgu0tBgSw8FHCA7AtB"><tr data-page-node-id="Y8WLh9M7pGNGCVZKSY4I1P"><td data-page-node-id="HFkRcDA9gwyNdB1bR9Awni">發生概率</td><td data-page-node-id="3N3lv5hp6xCU4zJsllc2Gz">70.0%</td><td data-page-node-id="NQAsiXotKqo6IeXqZNAR7D">57.5%</td><td data-page-node-id="br0nEQ3E85i6EqDAwOnbBk">32.5%</td><td data-page-node-id="ruiulJutBIBsgTKUkfbMgF">17.5%</td><td data-page-node-id="XOwVgUn0zZA3PO7JYDo4NN">10.0%</td></tr></tbody>
+  </table>
+  <p data-page-node-id="CnqJCr3JQ2GmvoUERdReD7"><b data-page-node-id="DUeO3NrDPQPMlZX48ug8sB">MAE 中位數 −9.71%，MFE 中位數 +12.99%。</b>翻譯成人話：這筆交易的典型體驗是——<b data-page-node-id="kBt4TJoapK6jVDKF2MPV7r">先看著帳面虧掉接近 10%，然後才等到 13% 的反彈</b>。中間的 −9.7% 不是意外，是設計的一部分。</p>
+  <p data-page-node-id="fHJsfXzDVBrXOLsm71CWpj">而 1 個 ATR 就是 8.02%。<b data-page-node-id="9sMQ9o3tcp9TohMhv83WRe">任何小於 1.2 個 ATR 的止損，都在噪音範圍之內，統計上必然被反覆觸發。</b>這就是「−5% 止損被掃概率 67.5%」的來源。以 2.09 進場換算：</p>
+  <table data-page-node-id="UHOGRPMoxMO72a0NSVfAV5">
+    <thead data-page-node-id="NoEKkGcwsEBadOfD0mZoEA"><tr data-page-node-id="tw6agyPl62FU5GbhYGUCAM"><th data-page-node-id="jTEH9ElAuyhj95aiYZEpto">止損寬度</th><th data-page-node-id="mA8IqhccERTXt9URj5XTPD">止損價位</th><th data-page-node-id="XJH1DyiVdOpw321TPLGnbf">相當於幾個 ATR</th><th data-page-node-id="CrjQQL9FjBtw4VwZds6N5v">被掃（20日內）概率</th></tr></thead>
+    <tbody class="num" data-page-node-id="btMb86Bv3UYwlKSFwWzCKW">
+      <tr data-page-node-id="YlnCpd39uwBViJ1RFOsCjq"><td data-page-node-id="JsaIJ7QAtPd6sh5yozo2kJ">−5%</td><td data-page-node-id="wg8r6ubTKBAZ8wK6y0JnVb">1.986</td><td data-page-node-id="OYmMC3VFX1HQvFKJlpFnb5">0.62×</td><td class="dn" data-page-node-id="kpmSsZSzZEXMPhk6uQH1XW">67.5%</td></tr>
+      <tr data-page-node-id="2JXoD4AyM1ZfTIdWGQDjA3"><td data-page-node-id="mKXxJ3T4VPJxRT9qeHEaMX">−7%</td><td data-page-node-id="iFIDvryigdKCETnPPRBXhD">1.944</td><td data-page-node-id="07vBjPjABimkp3iT2nV7UY">0.87×</td><td class="dn" data-page-node-id="ik3KyXTGHjO2acmHM26vKA">65.0%</td></tr>
+      <tr data-page-node-id="8rjRtkmttHhPqt1M7RDOFT"><td data-page-node-id="7uGBEfAoUooH41VYsPmGCY">−9%</td><td data-page-node-id="PilXq2FSzMW0GhCnWDQMhc">1.902</td><td data-page-node-id="2QgBxbwXzcrzn7L826T7TO">1.12×</td><td class="amb" data-page-node-id="odbxQ9mOxtcn0eL0J4831K">52.5%</td></tr>
+      <tr data-page-node-id="ImARWi63xRMSDAE8PJAHea"><td data-page-node-id="p4x74qXYwHIk4JzOEPfC6D"><b data-page-node-id="tAVUMQ76D94rlr37QosBws">−12%</b></td><td data-page-node-id="7U93dxfL58F6yUA1UcoMJU"><b data-page-node-id="YSiVrw6ugjFFyQm4rNR8Ck">1.839</b></td><td data-page-node-id="syzkNpaE0HYAlNaueYYp05"><b data-page-node-id="nAPkkk8lxXO5iB2k6B88pd">1.50×</b></td><td class="amb" data-page-node-id="tTEhFwRbMnSIa7jkFc6Fq3">37.5%</td></tr>
+      <tr data-page-node-id="Ag13cvQAV4gotqFfIV2hc5"><td data-page-node-id="QnaZTL8qujXI6rXbH3muqv"><b data-page-node-id="IDAMF0yvTb3gtcDXQ25fZ7">−15%</b></td><td data-page-node-id="ATDBiY7dIV6jqqMhmTboCb"><b data-page-node-id="DWWPbCrjoLRRl67Jn5F8GT">1.777</b></td><td data-page-node-id="SEhQdlhZ97hhjsFa87yVVL"><b data-page-node-id="XCo2JG1xGNBXXrLxAXvmwN">1.87×</b></td><td data-page-node-id="00A0pFIlD9RejuN1qEQK0o">25.0%</td></tr>
+      <tr data-page-node-id="E4JINLuroHk29Ym5zuqvGc"><td data-page-node-id="AWOFIM5lHUMlUdynr8xCB2">−18%</td><td data-page-node-id="x5qdwE53rEFEfNkxLAetmK">1.714</td><td data-page-node-id="2QJJDQDgHmqKWsw247COh4">2.25×</td><td data-page-node-id="yQEdepO6HSc9NRn27Msc85">25.0%</td></tr>
+    </tbody>
+  </table>
+  <p class="note-s" data-page-node-id="Njl21DzfMnRrku8yUI81Tv">「幾個 ATR」以當前 ATR14 = 0.1793 計。注意 −18% 的被掃概率與 −15% 同為 25.0%，說明<b data-page-node-id="lKKYKe5SdjeMZtbD63RK1y">再放寬止損已無邊際收益</b>——因為多數情況下，該被掃的在 −15% 之前就已經被掃掉了。</p>
+</div>
+
+<h2 data-page-node-id="FqljjC1JLlOPXBpRxPTdz5">五、對照基準：「超賣」到底有沒有 Alpha？</h2>
+<div class="card" data-page-node-id="PBcTvslj5e8JCDv7HUABug">
+  <p data-page-node-id="QK8q1muxIW6XjXKB8GCI9r">這是本次分析中最重要、也最少人願意算的一格。同樣的路徑模擬，改成<b data-page-node-id="pcEsB2HFbBpm3yGBEUjis1">每 20 個交易日無條件進場一次</b>（n=116），得到「什麼都不看」的基準成績：</p>
+  <table data-page-node-id="QqdD80P7JIKTZlHtPEkS9o">
+    <thead data-page-node-id="A4JtmE8Tt1TeRnSAhpaUhl"><tr data-page-node-id="uhSXAMOLhzM2CJBZxeQFfl"><th data-page-node-id="veAhix3FmPijbyDXFefbtF">參數組合</th><th data-page-node-id="n6v6OpfsnsvT30yn4as8mb">超賣事件進場（事件 A，n=67）</th><th data-page-node-id="OlM7pEDJzzkPDBHncYsIq9">隨機進場基準（n=116）</th><th data-page-node-id="12NcbS4Hqu6oX8q1GqDiw5">差異</th></tr></thead>
+    <tbody class="num" data-page-node-id="CXWa51q61DIOcPAi3RluGd">
+      <tr data-page-node-id="vPbY5FDBoazFG8BTnfHZMh"><td data-page-node-id="UzYyfWrafKf6VC6aU78GEL">止損 −12% / 目標 +16%</td><td data-page-node-id="WPKliV8CVR8F31Tko6VdVe">達標 31.8%｜E +0.76%</td><td data-page-node-id="6tABkY2VylH7RSwVyI9f7H">達標 33.6%｜E +0.94%</td><td class="dn" data-page-node-id="QY2s3JaAKz7QO018ydGbNG">−0.18pp</td></tr>
+      <tr data-page-node-id="ATpyvdQwdwqgnZ8A3PIEC7"><td data-page-node-id="iAjamjcReJEZbpDANEqWJD">止損 −12% / 目標 +25%</td><td data-page-node-id="nGo6GggzUIqSwNxYtE2Gw8">達標 24.2%｜E +0.54%</td><td data-page-node-id="E7SLHnXfPBAXZAYKXKwk8w">達標 20.7%｜E +1.17%</td><td class="dn" data-page-node-id="iHhmV2UM7A74YzadDatnrd">−0.63pp</td></tr>
+      <tr data-page-node-id="rBxOH4Cm84FLSjsZigPcWu"><td data-page-node-id="go1Th5OLygGPakMh22DObt">止損 −18% / 目標 +16%</td><td data-page-node-id="iGrsDTcjaF5tgoYbfQt2zS">達標 31.8%｜E +1.21%</td><td data-page-node-id="1IaWFyG35lBpPWjOpHnBCF">達標 35.3%｜E +0.98%</td><td class="up" data-page-node-id="n1NReYFvFXQ0nJ5JMXazV2">+0.23pp</td></tr>
+    </tbody>
+  </table>
+  <p data-page-node-id="niTjy6U2AcUuFpAMFYhBn5"><b data-page-node-id="aIYMW3LLcXpXMUsisIYywk">結論：在本股 11 年的樣本裡，「超賣」訊號的期望值與隨機進場沒有統計上可辨識的差異</b>（+0.76% vs +0.94%，差異落在噪音範圍內）。</p>
+  <p data-page-node-id="0Gf6lwrggTV8TZCfNBzqOI">這個結果聽起來掃興，但它其實是<b data-page-node-id="fcbt3H6VcpZrKQIjbR2YCF">好消息</b>——因為它把注意力從「猜底」轉移到兩個真正可控的變數上：</p>
+  <ul data-page-node-id="j3HdaltZ08dcIDZs57pLDg">
+    <li data-page-node-id="8bFAxJFW2SDQH8iTRwAWtU"><b data-page-node-id="YzWkCFHrIp1w0nIt1zrlQj">位置：</b>事件 G（距 250 日低 ≤5%）的 T+10 均值 +3.34%，是事件 A 的三倍以上。同業參照也指向同一結論——URA（Global X 鈾 ETF）在「距 250 日低 ≤5%」狀態下，T+20 勝率 77.8%、均值 +4.00%（n=18）；在「純超賣」狀態下勝率僅 49.3%、均值 +1.96%（n=67）。<b data-page-node-id="UxIsZUlnPpLWi8PCgR2MZx">是位置給 Alpha，不是超賣給 Alpha。</b></li>
+    <li data-page-node-id="cWMnEyqVmE8SzmKCgjWdm8"><b data-page-node-id="JF9P46bQFSAJNesdYA6GkH">幾何：</b>止損寬度與目標位階，是可事先決定、且對期望值影響最大（−0.87% 到 +2.42%，跨度 3.3 個百分點）的變數。</li>
+  </ul>
+  <p class="note-s" data-page-node-id="zuyJK8ujrM2ADaFcRRF1AC">同業參照樣本：URNM（Sprott 鈾礦 ETF，1,700 根，2019-12 起）｜URA（Global X 鈾 ETF，2,513 根，2016-09 起）｜CCJ（Cameco，2,513 根）。<b data-page-node-id="ACkit1vqb6JPJX3ujAEIHF">CCJ 在「距 250 日低 ≤5%」狀態下 T+20 均值 +16.44%（n=6，樣本極小，僅作方向參考）。</b></p>
+</div>
+
+<h2 data-page-node-id="q6marDOpBWh8XOJHLWySPL">六、交易成本：先把地板價扣掉</h2>
+<div class="card" data-page-node-id="cEDb1zjIWgbG4z7HxqAtjV">
+  <p data-page-node-id="Smo66xGAi8junMBOWglMaX">港股單邊摩擦成本實測構成（以中低價零售券商計）：</p>
+  <table data-page-node-id="mWt0o2BwJpbrBli08bHq70">
+    <thead data-page-node-id="noeEbpccUYR7yFUjnhP702"><tr data-page-node-id="xz8TkiqefVFzoBqQkoyzjE"><th data-page-node-id="wlkSUUgsxPzbzO1uOnY9DO">項目</th><th data-page-node-id="FxfFWgUHoHXl2ADyBWBq3Z">費率</th><th data-page-node-id="r0ZFSXjxcnXsGUk8HcLusD">單邊成本</th></tr></thead>
+    <tbody class="num" data-page-node-id="0Xn9mKup36PvbZ5werM77W">
+      <tr data-page-node-id="Gzbar7RtcNOv4d9jUjwHlK"><td data-page-node-id="iFH0UxXLZOyyQKxVdmAXfw">印花稅</td><td data-page-node-id="zmOaIE7auONb4xGvncQp4J">0.10%</td><td data-page-node-id="i404iq1UqJJ0l0hzm71LFU">0.10%</td></tr>
+      <tr data-page-node-id="LIlqqOAHAHTburhnVGGcym"><td data-page-node-id="JHJeKQDBI4GHG3PXlXdpkx">佣金（假設網上低佣）</td><td data-page-node-id="KHHwrR70tQEIkl0pxtASIs">約 0.03%（有最低收費）</td><td data-page-node-id="N3iUE0J9tQjv6oYko6QJst">0.03%</td></tr>
+      <tr data-page-node-id="duotZz3EjTu0IJrAQ7twLz"><td data-page-node-id="wvZhgjdr4EbV58XHAlzrol">交易費（港交所）</td><td data-page-node-id="hjIcRDwBZov5yh6rHm3Eh9">0.00565%</td><td data-page-node-id="VQWe7jn93M27V1eXFBdh5Z">0.0057%</td></tr>
+      <tr data-page-node-id="4CMoA1tkrO88vDUYavvz3z"><td data-page-node-id="IQKy9UCXjWwSj3a6FWFfy6">交易徵費（SFC）+ FRC 徵費</td><td data-page-node-id="OjP69hO5gB4pfApExhA3zK">0.0027% + 0.00015%</td><td data-page-node-id="n79l20Q7ZzNjlLJH3zgloL">0.0029%</td></tr>
+      <tr data-page-node-id="ROWY2eDNwCYwjSVV1QehwG"><td data-page-node-id="eQfPbuF77C7nNBK0KCUJVo">結算費</td><td data-page-node-id="o0Czs0hTSENCy9B2bp1txU">0.002%（最低 2 港元）</td><td data-page-node-id="TsBP6kiQHAatG8mGjHQ0an">0.002%</td></tr>
+      <tr data-page-node-id="utKW2f8btdSWaw5CWtM84U"><td data-page-node-id="JLNB7K46ziQnrY8O7JxN8x">買賣價差滑價</td><td data-page-node-id="Zfu8naVgLxqHS0qSC3DW69">01164 最小跳動 0.005 港元 ≈ 0.24%</td><td data-page-node-id="ygj5QfhjTP0QbbkLr9TsAe">約 0.24%</td></tr>
+      <tr style="background:#eef0f3" data-page-node-id="EvpEAz7IKYeF5AsPrkIVa7"><td data-page-node-id="3UnSNaBdav9xuluF1WFDci"><b data-page-node-id="d730nc8N79YTOB8DgR9ZLo">單邊合計</b></td><td data-page-node-id="qq4dIv4PICSMZ1gauLhw4Y"></td><td data-page-node-id="3mqdYatAytH6iD0KaWQHeM"><b data-page-node-id="OtCe9vGgXddi4DEqt8sOHh">約 0.38%</b></td></tr>
+      <tr style="background:#eef0f3" data-page-node-id="TJ3WyOT4sJEhFVMs4LRt0q"><td data-page-node-id="DLGFqti6Tt9UOVMevTEPp4"><b data-page-node-id="tOAb1tYHyFoDORGXALYGDu">來回合計（假設）</b></td><td data-page-node-id="uTU77XqKbHyDuRgLSD6XIq"></td><td class="amb" data-page-node-id="kCc57n6HQv8V11IoOld8Pc"><b data-page-node-id="FDCLj28HhPt6oUbQ8Y9MWv">約 0.75%</b></td></tr>
+    </tbody>
+  </table>
+  <p class="note-s" data-page-node-id="32arNNMP4rvcBD0Hr62xHY"><b data-page-node-id="9IadOsxqdGvcTkuAHzT6gi">成本敏感度極高。</b>正文所有期望值均已扣除 0.75%。若券商佣金為 0.25%（傳統銀行渠道）或成交金額過小觸發最低佣金，來回成本可升至 1.5% 以上——<b data-page-node-id="iBj8EfbNQvupLsGhi4W5xW">那會直接把本次最優組合的 +2.42% 淨期望砍掉三分之二。</b>請以自身實際費率重算。</p>
+  <p data-page-node-id="fmBf9wk1RL2x3l0bkHRSwg">另外提醒一個常被忽略的結構性成本：<b data-page-node-id="aiIT9Lnrho0Ma1vAVFPo3l">01164 每手 5,000 股，以 2.09 進場每手 10,450 港元。</b>若總資金低於 20 萬港元，手數過少會讓最低佣金吃掉大部分期望值。</p>
+</div>
+
+<h2 data-page-node-id="nmZGF1BvhgvAImvWuvLkNk">七、價位結構與操作紀律</h2>
+<div class="card" data-page-node-id="RZY3VOawztuzz2zCvgChBO">
+  <div class="ladder" data-page-node-id="qiR2UaoxIY8sue6yg5LMIv">
+    <div class="rung" data-page-node-id="8Ztn5tNvpCh0BcDfExqN6u"><div class="px" style="color:var(--dn)" data-page-node-id="yRxP0KhEMQvvkYSQe1MDei">1.71 – 1.78</div><div class="bar" style="width:26%;background:#c8e6c9" data-page-node-id="oxkHKbwrtX4MOyE7pWg7mK"></div><div class="txt" data-page-node-id="s9vHQkxj78Gg5DGFfi1g5b">−15% ~ −18% 止損區（統計上的「噪音外」邊界）<span class="pill s" data-page-node-id="dZ8jvzfoAkZvnBzJT9ZfEH">止損位</span></div></div>
+    <div class="rung" data-page-node-id="NAqOCVy3BqljuPNwmrWuyB"><div class="px" style="color:var(--dn)" data-page-node-id="V51DnYVHWw2xRlYHpPReME">1.99</div><div class="bar" style="width:18%;background:#a5d6a7" data-page-node-id="J1MkzmPAirnZRo08OvwUzo"></div><div class="txt" data-page-node-id="WztyuJaCSgO28pkAaxbj52">2.00 整數心理關<span class="pill n" data-page-node-id="oY2qmG1zN3QOOgiBJFIGEf">弱支撐</span></div></div>
+    <div class="rung" data-page-node-id="WBZZMAiqUaiPYRoR1EPc2e"><div class="px" data-page-node-id="uiCUhiaOtlE5mJnje3G5oO"><b data-page-node-id="7P9XMOZeWoja21u1yEeHvp">2.06 – 2.12</b></div><div class="bar" style="width:34%;background:#ffe0b2" data-page-node-id="2XAiW1eyc5SxHGjli04U2G"></div><div class="txt" data-page-node-id="WRLqbNmucaRxmgfsXEX05a">52 週低 2.07（2026-07-17）＋ 7/20 低點 2.10<span class="pill r" data-page-node-id="jpA0rzHnhQpS89utd6xUqQ">進場區</span></div></div>
+    <div class="rung" data-page-node-id="WN7HHsycQDXUe1C17UsjBo"><div class="px" style="color:var(--amber)" data-page-node-id="ifxjrQvTN6IjVFUTXV8bID">2.189</div><div class="bar" style="width:30%;background:#ffe082" data-page-node-id="3vrv9gloEFirbNb1wf6L8v"></div><div class="txt" data-page-node-id="HNzcIH6Zi5QDykbVxucJeS">布林下軌（會隨價格下移，非固定地板）<span class="pill n" data-page-node-id="1yZZAZ9W84sbqluDvWALek">移動中</span></div></div>
+    <div class="rung" style="background:#fdf0f0" data-page-node-id="xeDyf7ibPnMNrkC57UDTRu"><div class="px" style="color:var(--up)" data-page-node-id="CFMrU521osmV2JMoXdRapL"><b data-page-node-id="Gl9tFtMPY2CDcfLAqcK58u">2.34</b></div><div class="bar" style="width:40%;background:#ef9a9a" data-page-node-id="umV6BWeh6fQO3Qc6V3AA5Z"></div><div class="txt" data-page-node-id="oF7YOG35VUAXHxXLNERm0F"><b data-page-node-id="zV4ESlY2j6atgYbY05v1lA">最優目標位（+12%），也被三家最保守券商目標價下緣覆蓋<span class="pill r" data-page-node-id="wiAufWc14GdbV1qnxnuunU">目標</span></b></div></div>
+    <div class="rung" data-page-node-id="oDRdb7yb9asCjHvZDJfxzv"><div class="px" style="color:var(--ink3)" data-page-node-id="7kkBKTBCl4UQgDMm4dje9O">2.42 – 2.52</div><div class="bar" style="width:36%;background:#e0e0e0" data-page-node-id="Q5bRnMHlX3kQtwygxZolNa"></div><div class="txt" data-page-node-id="mEZw1AhIo72wTaF9cFfFBt">MA10 2.457、7/30 低 2.28 反壓、8 月成交密集區下緣<span class="pill n" data-page-node-id="45jpCdq72EB6ytZkmEtNsa">強壓力</span></div></div>
+    <div class="rung" data-page-node-id="NFRRmzZSvt5GNLZfiBEBQE"><div class="px" style="color:var(--ink3)" data-page-node-id="31ad8V9mmJKtbSZGV16FRb">2.56 – 2.66</div><div class="bar" style="width:30%;background:#e0e0e0" data-page-node-id="DX0Mc21mEkKxGhboJn1WhJ"></div><div class="txt" data-page-node-id="2Yd4kMHurDRGf3fsgidFnQ">MA60 2.564、MA20 2.660<span class="pill n" data-page-node-id="FMD2iJW7FqN1PXEacQ9v0G">強壓力</span></div></div>
+  </div>
+  <p class="note-s" data-page-node-id="UDPcxShaR81mRHJ2eSMzRz">價位來源：騰訊財經日K前復權數據本地計算（MA/BOLL/擺動高低點）。<b data-page-node-id="DYjgkzu0KmyF09lUX3idYt">注意：2.34 這個目標位的達標率（52.5%~55.0%）明顯高於 2.42（27.5%~30.0%），這正是「目標越大期望越低」的體現。</b></p>
+
+  <h3 data-page-node-id="IkUThG0HIviumQNLjfo2yC">三個否決條件（任一成立，計劃作廢）</h3>
+  <div class="veto" data-page-node-id="uZ2okNGlIkWZfXic3fmDSH"><b data-page-node-id="YSPA4y4q5THgLG011DNlDf">否決一：收盤跌破 2.07 且不留長下影。</b>歷史四次「創 250 日新低」事件，T+20 勝率 0%、均值 −11.64%、T+40 均值 −19.70%。2.07 之上是「回踩」，2.07 之下是「無人區」——圖上再無歷史籌碼參照。<b data-page-node-id="1kEtrQRCBgGYeD5hwCzz4Z">不要在這個位置「攤平」。</b></div>
+  <div class="veto" data-page-node-id="QDXhq7SB8G4avc2EUOtA9m"><b data-page-node-id="aMsrE1ZV9OrEixFevbSNx4">否決二：賣空占比不從 35% 高位回落。</b>9/10 單日賣空占比 35.43%，9/1 為 33.96%，9/4 為 28.49%。<b data-page-node-id="Qqnjw1H6y5FHRcViMH1k0t">空頭未回補之前，任何反彈都缺乏持續性</b>（9/9 那根 +7% 隔日即被 −8.08% 打回，就是樣本）。</div>
+  <div class="veto" data-page-node-id="PCHV2QU6hbSR0tvEsDMnbW"><b data-page-node-id="pIhi42T7FnYXvgvHIumyD7">否決三：反彈無法站回 MA10（現 2.457）之上。</b>均線呈完全空頭排列（2.235 &lt; MA5 2.423 &lt; MA10 2.457 &lt; MA60 2.564 &lt; MA20 2.660 &lt; MA120 3.122）。<b data-page-node-id="FsjxcgFCbEoZBuVMDwDqkx">站不回 MA10，結構就仍是「下跌中繼」而非「底部反轉」。</b></div>
+</div>
+
+<h2 data-page-node-id="SXIQDBvWT8IEO2Jlx5Otqx">八、倉位與風險預算</h2>
+<div class="card" data-page-node-id="x0GZefVjB6h53ExxaudDex">
+  <p data-page-node-id="5m3k9ihYcpPjQ08gAVxbFf">既然被掃概率高達 25%~38%，倉位不該由「我看好」決定，而該由「我能承受幾次連續虧損」決定。以<b data-page-node-id="EKl3dQOftbGWSPExAq1EJA">單筆最大虧損不超過總資金 1.5%</b> 為預算：</p>
+  <table data-page-node-id="PQM5aDxsG9Eh6PUYeAlWSW">
+    <thead data-page-node-id="IPeg9vMbhH4zqBwuYACaFG"><tr data-page-node-id="khYDaG3WotyXYCQDixLcig"><th data-page-node-id="JBPFhalevh8YX9tEvLTW1O">止損位</th><th data-page-node-id="CgIoj6rYGvz6IhePzCss9h">每股風險</th><th data-page-node-id="8bxNRHR9hnRCydmQfA46De">每手（5,000 股）最大虧損</th><th data-page-node-id="OZS4HBtyOMeRRORBnGK1mQ">10 萬資金可持手數</th><th data-page-node-id="j1O0gzatJX0iClUtoeGPrh">20 萬資金可持手數</th><th data-page-node-id="Oo0mpgk3FoO5vD4bd4YfPd">50 萬資金可持手數</th></tr></thead>
+    <tbody class="num" data-page-node-id="BK5ytuCRbE4JRjNAmqAcTu">
+      <tr data-page-node-id="vlVHBvo8z6XnDzlsibOEHq"><td data-page-node-id="obO1UUpC2khnrhGDeQhZCj">1.986（−5%）</td><td data-page-node-id="wvwUKTdkVJEsf2En4QVi1B">0.104 港元</td><td data-page-node-id="BIiHRV9ct2OzVbcCb20yvO">520 港元</td><td data-page-node-id="gvBN7HCklc2Z8dQzBXpPSN">2.8 手</td><td data-page-node-id="2Rcwrv77Xcoc2CJuhptFhb">5.7 手</td><td data-page-node-id="ZVO0UZtzndWkdG3iEBTtwF">14.4 手</td></tr>
+      <tr data-page-node-id="bBpmmLm4lw0BrPEYOInZUf"><td data-page-node-id="kDxnGTzVT8DxoqsR7EcGQy">1.902（−9%）</td><td data-page-node-id="h2yKhyKPrjZ8GzVDC4tLFJ">0.188 港元</td><td data-page-node-id="hKKWJl7k8moF25CYehopTG">940 港元</td><td data-page-node-id="fknHcRoBjdWMW6IHMZJDBl">1.6 手</td><td data-page-node-id="VKB7o0vxsmQUENAb0fVqlH">3.1 手</td><td data-page-node-id="bmXFz3ZbBmBFCHROnvuSJu">7.9 手</td></tr>
+      <tr style="background:#fdf0f0" data-page-node-id="j0wxjv7RaR3BXrlyT1Qe7a"><td data-page-node-id="P19YC6aH5mexydtwOdJqhx"><b data-page-node-id="miADet3hs2CLq1IqfSeI9j">1.839（−12%）</b></td><td data-page-node-id="GTRFnHaVerjjyG6XQkAVd2"><b data-page-node-id="ewRkzqZGKG6mgvXgk6JSJG">0.251 港元</b></td><td data-page-node-id="RbqjpajJLvXBLGOPtCeCb9"><b data-page-node-id="GbgBnXURmbdnOX7Al4vLwD">1,255 港元</b></td><td data-page-node-id="I82UyuFIZhn0fkeBgKXhrW"><b data-page-node-id="di3XQJI7sckhvsTEn9Nc6u">1.2 手</b></td><td data-page-node-id="KDfGRhFzuRdChWw5eA8opj"><b data-page-node-id="8LE3Ci5APdNwlkqZ8JQ0Lo">2.4 手</b></td><td data-page-node-id="rW4ISWIyrFUZRZZVcQjez8"><b data-page-node-id="L76WYH5SGXsZzXqfc5AMky">5.9 手</b></td></tr>
+      <tr style="background:#fdf0f0" data-page-node-id="7ywnJMy9pfTRwLpSnQOoBf"><td data-page-node-id="Ds98ELxvLmaLGwq1jCBxyA"><b data-page-node-id="bBOcd3mDkvc8ehUR19Xo8e">1.777（−15%）</b></td><td data-page-node-id="YZ4dGdArABriJivEhP7QqS"><b data-page-node-id="zJjmlP0YfIcAsonSQmOaRY">0.313 港元</b></td><td data-page-node-id="v3CIjZkoIH6tnG31R7PRsg"><b data-page-node-id="omm6iTrUpX16qxBCBALzey">1,565 港元</b></td><td data-page-node-id="EbKvtCu5hs86pYRt6RZbwj"><b data-page-node-id="Chfd92WzfsiHlX1qMTlb9u">0.9 手</b></td><td data-page-node-id="VEgfrYo0EpJk25xsxqSnnb"><b data-page-node-id="yVoUoScnJzVXeDGgmoLAbe">1.9 手</b></td><td data-page-node-id="bveh2088AegcFO5KQ3xfz9"><b data-page-node-id="R5dkxF3ETTi0LyUuq5HPj8">4.8 手</b></td></tr>
+    </tbody>
+  </table>
+  <p class="note-s" data-page-node-id="pMlr7cA7ymfEXtR1tsnrVl">以進場價 2.09 計。手數取整後向下取（不足一手的資金不進場）。<b data-page-node-id="HpiulLs9zvJl7mn5wsvAdF">這張表揭示了一個殘酷的算術：用 −12% 止損 + 1.5% 風險預算，10 萬港元資金實際只能買 1 手。</b>如果這讓你覺得「賺不到錢」，那正確的反應是<b data-page-node-id="SM1ekO6s2mDO5HEJqsVOGM">接受這筆交易本來就只能小做</b>，而不是放大倉位去對抗統計。</p>
+  <p data-page-node-id="FuGgDEDFAMXysiCAHotU5P">作為對照，若放寬到「單筆風險 5%」（已屬激進）：50 萬資金在 −12% 止損下可持 20 手，但連續三次被掃就是 −15% 的帳戶淨值回撤——而本文已證明<b data-page-node-id="qbElqZysVTRthie6DFKdKw">被掃概率達 37.5%</b>，連三次的機率約 5.3%，並非罕見事件。</p>
+</div>
+
+<h2 data-page-node-id="r37sVX9pRWrB3WcnlP1eL5">九、方法、樣本與局限</h2>
+<div class="card" data-page-node-id="GkNY81BpIADTv1ZNxhPX3Y">
+  <h3 data-page-node-id="mQdTIkQONkjf5uORCsbYYA">計算方法</h3>
+  <ul data-page-node-id="p6bBycGCrqjFdbTVNwt4NB">
+    <li data-page-node-id="JzTAzYCfJHb8xJqpFtHxEQ"><b data-page-node-id="ugq3bmrM97FQEtEgd4SKUs">數據源：</b>日K取自騰訊財經 <code data-page-node-id="yA16UlgWdhV8d11IZobXTJ">hkfqkline</code> 接口（前復權，含 2026-09-11 盤中合成 K 線：O 2.360 / H 2.360 / L 2.220 / C 2.235），共 2,701 根，覆蓋 2015-09-22 至 2026-09-11；同業參照取自 Yahoo Finance <code data-page-node-id="HieN7GiXDnIctwxjkVrLXd">chart</code> 接口（URNM / URA / CCJ）。</li>
+    <li data-page-node-id="g7mSZjqqY6WAD6l7ga8OUk"><b data-page-node-id="rRvqHAVGI9L8NHZzDfkTKT">指標：</b>MA、布林帶(20,2)、RSI(6/14)、KDJ(9,3,3)、MACD(12,26,9)、ATR(14) 均為本地實作計算，非引用第三方數值。</li>
+    <li data-page-node-id="wS4g9MBPVgrt1jDNbCRn8r"><b data-page-node-id="DLLuZMyTicDcgYznyKQwcz">事件去重：</b>同一輪下跌會被逐日重複觸發，故設定 10 個交易日冷卻期，只保留每簇首日。粗篩 83 次事件經去重後為 67 次（事件 A）。<b data-page-node-id="clhxolNaIInPLILKv4Px0T">未去重的版本會虛增樣本量約 24%，是此類統計最常見的偏誤。</b></li>
+    <li data-page-node-id="p84W9okXFXAMk7CbJPNOl8"><b data-page-node-id="bZrYHXnF1UxUrhRchDeh7c">路徑模擬：</b>以事件日收盤為進場價，逐日檢查盤中高低價判定目標與止損的先後；<b data-page-node-id="UlAXiZRQEO5JKP4YadK5GL">同日內同時觸及兩者時，保守計為止損</b>。未觸及者以窗口末收盤價計算浮動損益。</li>
+  </ul>
+  <h3 data-page-node-id="yw1mUHf7SOzXgWGGXMmi7s">必須聲明的局限</h3>
+  <ul data-page-node-id="0JoDEHNTE0Nj8EHRfxqXEi">
+    <li data-page-node-id="cX8r5CNs8XerQv4zfbUxdw"><b data-page-node-id="wzuIsLGAlMYdCXshmvG0fx">樣本量小。</b>事件 G（距 250 日低 ≤5%）僅 13 例，事件 F（創 250 日新低）僅 4 例。這些是最貼近當前情境的類比，但置信區間很寬。<b data-page-node-id="UmLR1te9Tz6iDW5ebExq73">事件 F 的 0% 勝率尤其不可當作結論使用。</b></li>
+    <li data-page-node-id="0JusdZias60Rg3DWs81GxA"><b data-page-node-id="UEBejA6Esh1S0hTHF8oKWn">歷史規律不是未來保證。</b>2015–2026 期間本股經歷了鈾價從 18 美元/磅到 106 美元/磅的完整週期，不同政權下的波動結構可能已經改變。當前 –60% 的深度回撤在樣本中屬少見狀態。</li>
+    <li data-page-node-id="qgZ7ghtP4fflTXyqvd0IF4"><b data-page-node-id="VmYlB1gWLEr1fMqnQCIWBL">「回落至 2.09 的機率」屬情境平移。</b>歷史上事件日的絕對價位各不相同，此處將各事件的百分比跌幅標準化後對應到當前價位，是推導值而非直接觀測值。</li>
+    <li data-page-node-id="dENbuuQqUg31bkarljrgdE"><b data-page-node-id="xsDWIvGmEZVhe6BZ6vF58N">成本假設 0.75%。</b>實際費率因券商與成交金額而異，請以自身費率重算。</li>
+    <li data-page-node-id="JnYpPi7DVq8glDbeWHnzaU"><b data-page-node-id="BWL876zWrQdggtpGaMjGzk">未涵蓋的變數。</b>本模型純技術面，未計入：10/7 Kazatomprom 股東就對中俄供貨合同的投票、下半年交付回補的實際進度、哈薩克硫酸供應、以及美債利率路徑。這些是可能改寫結論的外生衝擊。</li>
+  </ul>
+  <h3 data-page-node-id="Lk3KI4UhGWSAiWduAY3Iff">基本面交叉參照（非模型輸入，僅供背景對齊）</h3>
+  <ul class="src" data-page-node-id="Op5bNEhPwR3JfO2W7xQ7DB">
+    <li data-page-node-id="xoGrhplduMk60nFQFBp1I1">賣方評級近 6 個月 <b data-page-node-id="EQ1JRRY6s5zgQSUFBytynH">100% 買入／增持</b>（7/6/4/2/4/5 家），目標均價 3.76–4.18 港元、最高 5.40、最低 3.37；<b data-page-node-id="eSSfuuEULYWixOJAdsthUR">但最保守一檔已下修至 2.40–2.65 區間</b>（建銀國際 2.65、招銀國際 2.61、華泰證券 2.43）——<b data-page-node-id="mvPituIiRfKlFRWhxGRO2J">本文的最優目標 2.34 正落在這個下緣附近</b>。</li>
+    <li data-page-node-id="BLcMoH3ZIq9bB3wpLBAnTF">天然鈾長協價 2026 年 8 月收 <b data-page-node-id="BM1E23qxiOeEXb81SsXHoh">96.50 美元/磅</b>，超越 2007 年峰值創 18 年新高，已連續 19 個月無下調；公司 2026–2028 年自產鈾基價上調至 94.22 / 98.08 / 102.10 美元/磅，現貨掛鉤比例由 60% 升至 70%。</li>
+    <li data-page-node-id="UwwqlBNdAk6hHKYUjJ7Kqe">2026H1 歸母淨虧 0.80 億港元（加權成本會計法致存貨成本高於售價），公司稱下半年交付回補；南向資金近一季淨增持 1.94 億股（+5.15 億港元），但 <b data-page-node-id="fB7gzOEj3T7NdoWt75pvYh">9/9–9/11 連續三日轉為淨減持</b>。</li>
+  </ul>
+</div>
+
+<div class="disc" data-page-node-id="9i51ueZDkrGKiFT6jzOiVc">
+  <b data-page-node-id="cTfdMtSUPDg3YPABCCbbJ7">免責聲明</b>：以上內容基於公開數據和量化分析，僅供參考，不構成投資建議。文中所有概率為歷史統計推導值，不構成對未來表現的承諾或保證。市場有風險，投資需謹慎。任何投資決策應結合個人風險承受能力、資金狀況和投資目標獨立判斷，必要時諮詢持牌專業機構。過往表現不預示未來收益。
+</div>
+
+</div>
+
+<script>
+var C_UP = '#c62828', C_DN = '#2e7d32', C_BLUE = '#1a5fb4', C_AMBER = '#b26a00';
+
+echarts.init(document.getElementById('chart_width')).setOption({
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+  legend: { data: ['達標率(+12%)', '被掃率', '淨期望值'], top: 0 },
+  grid: { left: 56, right: 62, top: 44, bottom: 40 },
+  xAxis: { type: 'category', data: ['−5%','−7%','−9%','−12%','−15%','−18%'], name: '止損寬度' },
+  yAxis: [
+    { type: 'value', name: '概率 (%)', max: 80, axisLabel: { formatter: '{value}%' } },
+    { type: 'value', name: '淨期望 (%)', min: 0, max: 3.2, axisLabel: { formatter: '{value}%' } }
+  ],
+  series: [
+    { name: '達標率(+12%)', type: 'bar', barGap: '10%', itemStyle: { color: C_UP },
+      data: [42.5, 42.5, 47.5, 52.5, 55.0, 55.0],
+      label: { show: true, position: 'top', fontSize: 11, formatter: '{c}%' } },
+    { name: '被掃率', type: 'bar', itemStyle: { color: C_DN },
+      data: [55.0, 52.5, 37.5, 27.5, 17.5, 17.5],
+      label: { show: true, position: 'top', fontSize: 11, formatter: '{c}%' } },
+    { name: '淨期望值', type: 'line', yAxisIndex: 1, smooth: true, symbolSize: 8,
+      lineStyle: { width: 3, color: C_AMBER }, itemStyle: { color: C_AMBER },
+      data: [1.65, 0.78, 1.65, 2.28, 2.42, 1.90],
+      label: { show: true, position: 'bottom', fontSize: 11, formatter: '{c}%' } }
+  ]
+});
+
+echarts.init(document.getElementById('chart_heat')).setOption({
+  tooltip: { position: 'top', formatter: function(p){ return p.value[1] + ' 止損 / +' + p.value[0] + '% 目標<br/>淨期望值: ' + p.value[2].toFixed(2) + '%'; } },
+  grid: { left: 70, right: 30, top: 46, bottom: 52 },
+  xAxis: { type: 'category', data: ['+8%','+12%','+16%','+20%'], name: '目標位', splitArea: { show: true } },
+  yAxis: { type: 'category', data: ['−18%','−15%','−12%','−9%','−7%','−5%'], name: '止損寬度', splitArea: { show: true } },
+  visualMap: { min: -1, max: 2.5, calculable: true, orient: 'horizontal', left: 'center', bottom: 0,
+    inRange: { color: ['#2e7d32','#7cb342','#ffe082','#ef9a9a','#c62828'] },
+    text: ['高期望', '低期望'], textStyle: { fontSize: 11 } },
+  series: [{
+    name: '淨期望值', type: 'heatmap',
+    data: [
+      [0,-18,-0.91],[1,-18,1.90],[2,-18,-0.54],[3,-18,-0.72],
+      [0,-15,1.44],[1,-15,2.42],[2,-15,0.21],[3,-15,0.03],
+      [0,-12,0.92],[1,-12,2.28],[2,-12,0.19],[3,-12,0.02],
+      [0,-9,0.38],[1,-9,1.65],[2,-9,-0.46],[3,-9,-0.58],
+      [0,-7,-0.77],[1,-7,0.78],[2,-7,-0.70],[3,-7,-0.87],
+      [0,-5,0.28],[1,-5,1.65],[2,-5,0.37],[3,-5,0.25]
+    ],
+    label: { show: true, fontSize: 11, formatter: function(p){ return p.value[2].toFixed(2) + '%'; } },
+    emphasis: { itemStyle: { shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.3)' } }
+  }]
+});
+
+echarts.init(document.getElementById('chart_exc')).setOption({
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+  legend: { data: ['曾出現此幅度浮虧的概率', '曾出現此幅度浮盈的概率'], top: 0 },
+  grid: { left: 56, right: 30, top: 46, bottom: 44 },
+  xAxis: { type: 'category',
+    data: ['−20%','−18%','−15%','−12%','−9%','−7%','−5%','+8%','+12%','+16%','+20%','+25%'],
+    axisLabel: { fontSize: 11, interval: 0 } },
+  yAxis: { type: 'value', name: '概率 (%)', max: 80, axisLabel: { formatter: '{value}%' } },
+  series: [
+    { name: '曾出現此幅度浮虧的概率', type: 'bar', itemStyle: { color: C_DN },
+      data: [20.0, 25.0, 25.0, 37.5, 52.5, 65.0, 67.5, null, null, null, null, null],
+      label: { show: true, position: 'top', fontSize: 10, formatter: function(p){ return p.value == null ? '' : p.value + '%'; } } },
+    { name: '曾出現此幅度浮盈的概率', type: 'bar', itemStyle: { color: C_UP },
+      data: [null, null, null, null, null, null, null, 70.0, 57.5, 32.5, 17.5, 10.0],
+      label: { show: true, position: 'top', fontSize: 10, formatter: function(p){ return p.value == null ? '' : p.value + '%'; } } }
+  ]
+});
+</script>
+</body>
+</html>
