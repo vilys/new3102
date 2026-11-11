@@ -112,7 +112,10 @@ EVENT_NAMES = {
 
 def build_events(I, kind, cooldown=10, start=252, end=None):
     """產生事件索引。**必須去重**：同一輪下跌會逐日重複觸發，不去重會虛增樣本約 24%。"""
-    cond = EVENT_SPECS[kind]
+    cond = EVENT_SPECS.get(kind)
+    if cond is None:
+        # 不要讓 KeyError 裸奔：把可用清單帶進例外訊息，任何呼叫路徑都能受惠
+        raise ValueError(f"未知事件 {kind}（可用：{','.join(EVENT_SPECS)}）")
     n = len(I["close"])
     end = n if end is None else end
     ev = []
@@ -431,6 +434,13 @@ def summary_table(rows, I, kinds=("A", "N", "F", "G", "I", "H"), H=(10, 20, 40),
 
 
 def _print_year_split(rows, idxs, H=20, indent="  "):
+    """分年表 + 「近三年」紅線。
+
+    ⚠️ 「近三年」必須是**日曆近三年**，不是「有事件的最後三個年份」。
+    舊版用 `years[-3:]` 補槽位，會在缺少年份時把更早的年份拉進來
+    （實例：09696 的 D 事件 2025 年無樣本，2023 被拉進來，把 43.8% 抬成 50.0% 過關）。
+    截止年取自資料最後一根 K，不用 wall clock，否則回測舊資料會失真。
+    """
     ys = year_split(rows, idxs, H)
     if not ys:
         print(f"{indent}分年：無可用樣本")
@@ -438,16 +448,46 @@ def _print_year_split(rows, idxs, H=20, indent="  "):
     parts = [f"{y} n={v['n']} 勝{fmt_win(v['n'], v['win']).strip()} 均值{v['mean']:+.1f}%"
              for y, v in ys.items()]
     print(f"{indent}分年：" + " | ".join(parts))
-    years = sorted(ys)
-    recent = years[-3:]
-    tot = sum(ys[y]["n"] for y in recent)
-    if tot:
-        wins = sum(ys[y]["win"] * ys[y]["n"] for y in recent) / tot
-        if tot < 10:
-            print(f"{indent}近三年（{'/'.join(recent)}）合計 n={tot} → 樣本不足，不作勝率結論")
-        else:
-            flag = "⚠️ <50%，整體數字被早年拉高" if wins < 50 else "≥50%"
-            print(f"{indent}近三年（{'/'.join(recent)}）合計 n={tot} 勝率 {wins:.1f}% → {flag}")
+
+    cutoff = int(rows[-1][0][:4])
+    cal = [str(cutoff - 2), str(cutoff - 1), str(cutoff)]
+    present = [y for y in cal if y in ys]
+    missing = [y for y in cal if y not in ys]
+    window = "/".join(cal)
+    gap = f"，其中 {'、'.join(missing)} 無事件" if missing else ""
+    tot = sum(ys[y]["n"] for y in present)
+
+    if tot == 0:
+        print(f"{indent}近三年（{window}{gap}）無任何事件 → 無法判定 50% 紅線")
+        return
+    if tot < 10:
+        # n<10 依協議第十節不得給勝率；但也不能因此看起來像「過關」
+        print(f"{indent}近三年（{window}{gap}）合計 n={tot} → 樣本不足（n<10），"
+              f"不得作勝率結論；⚠️ 不可視為 ≥50%")
+        return
+    wins = sum(ys[y]["win"] * ys[y]["n"] for y in present) / tot
+    flag = "⚠️ <50%，整體數字被早年拉高" if wins < 50 else "≥50%"
+    # 勝率一律走 fmt_win，與表格註記（10–29 不給小數）一致
+    print(f"{indent}近三年（{window}{gap}）合計 n={tot} "
+          f"勝率 {fmt_win(tot, wins).strip()} → {flag}")
+
+
+def _validate_kinds(kinds):
+    """過濾未知事件代碼並印出可用清單；回傳過濾後（保序、去重）的清單。"""
+    ok, bad, seen = [], [], set()
+    for k in kinds:
+        k = k.strip()
+        if not k:
+            continue
+        if k in EVENT_SPECS:
+            if k not in seen:
+                seen.add(k)
+                ok.append(k)
+        elif k not in bad:
+            bad.append(k)
+    for k in bad:
+        print(f"跳過未知事件 {k}（可用：{','.join(EVENT_SPECS)}）")
+    return ok
 
 
 def _opt(args, name, default=None):
@@ -589,6 +629,11 @@ def _cli(argv):
     ev_arg = _opt(args, "--events")
     if ev_arg:
         kinds = [x.strip() for x in ev_arg.split(",")]
+    # 在「任何計算之前」過濾未知代碼。舊版只守矩陣那一條路徑，
+    # summary_table 更早跑，打錯字會直接 KeyError traceback。
+    kinds = _validate_kinds(kinds)
+    if not kinds and ev_arg:
+        return 2
 
     cd = int(_opt(args, "--cooldown", "10"))
     summary_table(rows, I, kinds, cooldown=cd, show_years=("--years" in args))
@@ -603,7 +648,7 @@ def _cli(argv):
 
     mv = _opt(args, "--matrix-events") or _opt(args, "--matrix")
     if mv:
-        matrix_kinds = [x.strip() for x in mv.split(",")]
+        matrix_kinds = _validate_kinds([x.strip() for x in mv.split(",")])
     else:
         matrix_kinds = kinds[:2]
         if len(kinds) > 2:
@@ -611,9 +656,6 @@ def _cli(argv):
                   f"用 --matrix-events={','.join(kinds)} 可指定全部。）")
 
     for k in matrix_kinds:
-        if k not in EVENT_SPECS:
-            print(f"\n跳過未知事件 {k}（可用：{','.join(EVENT_SPECS)}）")
-            continue
         _print_matrix(rows, I, k, stops, targets, cost, cooldown=cd)
 
     sweep = _opt(args, "--cooldown-sweep")

@@ -220,7 +220,36 @@ def quote(sym):
         d["w52_high"], d["w52_low"] = hi, lo
     else:
         d["w52_high"], d["w52_low"] = None, None
+        # 港股這個欄位常整段錯位；回 null 比回錯數字好，但使用者需要知道怎麼補
+        d["w52_note"] = "此市場欄位不可用；CLI 會自動用日 K 補算，程式內可呼叫 fill_w52(q)"
     return d
+
+
+def fill_w52(q, bars=250):
+    """用日 K 補算 52 週高低（騰訊的 47/48 欄位在港股常失效）。
+
+    只有在原始欄位為 None 時才發請求，避免多打一次端點。
+    """
+    if not q or q.get("w52_high") is not None or q.get("price") is None:
+        return q
+    sym = q.get("symbol") or ""
+    try:
+        if sym.lower().startswith("us"):
+            rows = fetch_us(sym, rng="1y")
+        else:
+            rows = fetch_hk(sym, start="2024-01-01")
+    except Exception as exc:  # 網路/端點問題不該讓報價整體失敗
+        q["w52_note"] = f"日 K 補算失敗（{exc}），52 週高低不可用"
+        return q
+    rows = rows[-bars:]
+    if not rows:
+        q["w52_note"] = "日 K 為空，52 週高低不可用"
+        return q
+    q["w52_high"] = max(r[3] for r in rows)
+    q["w52_low"] = min(r[4] for r in rows)
+    q["w52_source"] = f"日 K 補算（{rows[0][0]} → {rows[-1][0]}，{len(rows)} 根）"
+    q.pop("w52_note", None)
+    return q
 
 
 def append_intraday(rows, q):
@@ -269,7 +298,8 @@ def _cli(argv):
               file=sys.stderr)
 
     if cmd == "quote":
-        print(json.dumps(quote(argv[1]), ensure_ascii=False, indent=2))
+        q = fill_w52(quote(argv[1]))
+        print(json.dumps(q, ensure_ascii=False, indent=2))
         return 0
 
     out = None

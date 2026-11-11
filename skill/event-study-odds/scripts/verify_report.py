@@ -12,7 +12,10 @@ verify_report.py — HTML 報告交付前自檢。
 
   財務一致性層（啟發式，抓最常見的錯誤）
     4. 同一指標（MA/RSI/ATR）在報告內是否出現多個不一致的值
-    5. 「失效線 / 止損 / 支撐」的價位是否對得上原始 K 線的低點
+       （只抓「多值衝突」，抓不到「單一但錯誤」的值）
+    5. 價位宣稱是否對得上原始 K 線：
+       歷史低點型（失效線/支撐/前低）比低點、目標型（壓力/目標）比高點、
+       計算型（止損）驗算術；落在數列窗口外的宣稱列 INFO 不判錯
     6. n<10 卻仍印出小數勝率
     7. 免責聲明是否存在
 
@@ -130,9 +133,11 @@ def _count_top_level(body):
 
 
 def collect_arrays(html, scripts):
-    """回傳 {name: {"n": len, "values": [float] or None}}。
+    """回傳 {name: {"n": len, "values": [float] or None, "nested": [[float]] or None}}。
 
     同時支援 `var X=[...]` 與 `window.X=[...]`——後者是本專案報告的實際寫法。
+    `nested` 收 ECharts candlestick 這類「list of list」數列（每列 3–5 欄），
+    讓價位對照也能驗證 K 線陣列（例如 `window.K=[[o,c,l,h],...]`）。
     """
     source = "\n".join(scripts) if scripts else html
     found = {}
@@ -161,9 +166,29 @@ def collect_arrays(html, scripts):
                     break
             if ok:
                 values = nums
+        nested = None
+        if isinstance(arr, list) and len(arr) >= 5 and all(isinstance(r, list) for r in arr):
+            w = len(arr[0])
+            if 3 <= w <= 5 and all(len(r) == w for r in arr) and \
+                    all(isinstance(x, (int, float)) for r in arr for x in r):
+                nested = [[float(x) for x in r] for r in arr]
         found[name] = {"n": len(arr) if isinstance(arr, list) else _count_top_level(body),
-                       "values": values}
+                       "values": values, "nested": nested}
     return found
+
+
+def _nested_column(rows, want="low"):
+    """在巢狀 OHLC 陣列裡找出「恆為該列最小值／最大值」的唯一欄位。
+
+    不硬編碼 index：`[o,c,l,h]`、`[低,收,高]`、`[o,h,l,c]` 都能正確定定位。
+    若有多個欄位都恆為極值（無法辨識），回 None——寧可跳過也不要猜錯。
+    """
+    w = len(rows[0])
+    hits = []
+    for i in range(w):
+        if all((r[i] == min(r)) if want == "low" else (r[i] == max(r)) for r in rows):
+            hits.append(i)
+    return hits[0] if len(hits) == 1 else None
 
 
 # ---------------------------------------------------------------- 重複鍵
@@ -223,7 +248,102 @@ def check_duplicate_keys(scripts):
 _METRIC_RE = re.compile(r"\b(MA\d{1,3}|RSI\d{1,2}|ATR)\b[\s:：=＝]{0,3}(\d+\.\d+)")
 # 反向寫法：「2.088（MA20）」「23.95 (MA20)」——報告常用數字在前、標籤在後
 _METRIC_REV_RE = re.compile(r"(\d+\.\d+)\s*[（(]\s*(MA\d{1,3}|RSI\d{1,2}|ATR)\s*[）)]")
-_CLAIM_RE = re.compile(r"(失效線|止損|支撐)[^0-9\-]{0,24}(-?\d+\.\d+)")
+# 歷史低點型：這些價位「應該」等於某根 K 的低點
+# `[^0-9\-<>。！？]` 刻意擋掉跨標籤與跨句：否則「支撐…1.06 倍均量」會被誤認成價位
+_LOW_CLAIM_RE = re.compile(
+    r"(失效線|支撐|前低|觀察線|防守線|鐵底|頸線)[^0-9\-<>。！？]{0,24}(-?\d+\.\d+)")
+# 目標型：多半是圖表推導的壓力／目標，也可能引用分析師目標價 → 只提示，不判 FAIL
+_HIGH_CLAIM_RE = re.compile(
+    r"(壓力|阻力|目標價|目標|下一站|上看)[^0-9\-<>。！？]{0,24}(-?\d+\.\d+)")
+# 計算型：止損價通常由「進場價 × (1−止損%)」算出，本來就不會等於任何歷史低點
+_STOP_CLAIM_RE = re.compile(
+    r"(止損|止蝕|停損)[^0-9\n]{0,6}(?:[−\-]?\d+(?:\.\d+)?\s*%\s*[（(]?\s*)?"
+    r"(?:-?\d+\.\d+[^0-9\n（(]{0,4}[（(]\s*約\s*)?"
+    r"(-?\d+\.\d+)(?![\d%])")
+# 進場價可能在關鍵詞前（「以 23.74 進場」）或後（「進場 2.230」）；
+# 後者不可跨越逗號／頓號去抓下一個價位，否則「進場、止損設在 22.24」會誤取止損價當進場價
+_ENTRY_RE = re.compile(r"進場(?:價)?[^\d\n，、。；]{0,4}(\d+\.\d+)")
+_ENTRY_REV_RE = re.compile(r"(\d+\.\d+)[^\d\n]{0,4}(?:進場|買入)")
+_STOP_PCT_RE = re.compile(r"(?:止損|止蝕|停損)[^\d\n%]{0,8}[−\-]?(\d+(?:\.\d+)?)\s*%")
+_STOP_PCT_ANY_RE = re.compile(r"[−\-](\d+(?:\.\d+)?)\s*%")
+_STOP_MULT_RE = re.compile(r"[×xX*]\s*(0\.\d+)")
+
+_LOW_NAME_RE = re.compile(r"(?i)^(?:l|lo|low)\d*$|(?:^|_)low(?:_\d+)?$")
+_HIGH_NAME_RE = re.compile(r"(?i)^(?:h|hi|high)\d*$|(?:^|_)high(?:_\d+)?$")
+
+
+def _visible(html):
+    """去掉 <script>、註解與所有 HTML 標籤再做文字比對。
+
+    1. 報告的圖表軸標籤常寫成 `['1.95 前低','2.09 MA10']`，留在 script 裡
+       會被「前低 → 2.09」誤抓成價位宣稱。
+    2. 正文常寫成「失效線：<b>跌破 1.965」，若不禁掉標籤就會在 `<` 處斷開、
+       整條宣稱漏抓——所以這裡是「剝掉標籤」而不是「禁止出現標籤」。
+    """
+    out = re.sub(r"<script(?![^>]*\bsrc=)[^>]*>.*?</script>", " ", html, flags=re.S)
+    out = re.sub(r"<!--.*?-->", " ", out, flags=re.S)
+    # 只剝「長得像 HTML 標籤」的片段（以字母或 / 開頭）；
+    # 否則內文的 `RSI6<30 且 close<MA60` 會被當成標籤開頭，吞掉整段文字。
+    out = re.sub(r"</?[a-zA-Z][^>]*>", " ", out)
+    return out
+
+
+def _price_series(arrays, want="low"):
+    """收集低點／高點數列。
+
+    來源有兩種：
+      1. 扁平數值數列，名字像 `L1164` / `LO` / `low` / `H1164` / `high`
+      2. 巢狀 K 陣列，用「恆為該列最小值（低）／最大值（高）的唯一欄位」取出
+    回傳 [(標籤, [float])]。
+    """
+    out = []
+    name_re = _LOW_NAME_RE if want == "low" else _HIGH_NAME_RE
+    for name, info in arrays.items():
+        v = info.get("values")
+        if v and name_re.search(name) and len(v) > 5:
+            vals = [x for x in v[-260:] if x is not None]
+            if vals:
+                out.append((name, vals))
+        rows = info.get("nested")
+        if rows and len(rows) > 5:
+            idx = _nested_column(rows, want)
+            if idx is not None:
+                tail = rows[-260:]
+                out.append((f"{name}[{idx}]", [r[idx] for r in tail]))
+    return out
+
+
+def _verify_stop_arithmetic(html, m, price):
+    """嘗試驗算止損價：進場價 × (1−止損%) 或 進場價 × 係數。
+
+    回傳 (status, detail)，status ∈ {"ok", "bad", "unknown"}。
+    """
+    ctx = html[max(0, m.start() - 60):m.end() + 160]
+    entry = _ENTRY_RE.search(ctx) or _ENTRY_REV_RE.search(ctx)
+    if not entry:
+        return "unknown", "未見進場價，無法驗算"
+    e = float(entry.group(1))
+
+    # 百分比只從「止損」之後找：前面 60 字常是走勢區間（-14.7% / -22.0%），
+    # 拿它當止損幅度會算出完全錯誤的期望價位。
+    tail = html[m.start():m.end() + 120]
+    pct = _STOP_PCT_RE.search(tail)
+    if not pct:
+        # 「止損設在 22.24 之下（約 21.90，−7.7%，約 1.7 倍 ATR）」這種寫法
+        pct = _STOP_PCT_ANY_RE.search(tail)
+    mult = _STOP_MULT_RE.search(tail)
+    if pct:
+        p = float(pct.group(1))
+        expected, how = e * (1 - p / 100), f"{e:.3f} × (1−{p:g}%)"
+    elif mult:
+        k = float(mult.group(1))
+        expected, how = e * k, f"{e:.3f} × {k:g}"
+    else:
+        return "unknown", "未見止損百分比，無法驗算"
+
+    if abs(price - expected) <= max(0.005, 0.01 * abs(price)):
+        return "ok", f"{how} = {expected:.3f}，相符"
+    return "bad", f"{how} = {expected:.3f}，與 {price} 不符（差 {abs(price - expected):.3f}）"
 
 
 def check_metric_conflict(html):
@@ -257,49 +377,93 @@ def check_metric_conflict(html):
 
 
 def check_price_claims(html, arrays):
-    """把『失效線/止損/支撐』的價位對回原始 K 線的低點。
+    """把報告裡的價位宣稱對回原始 K 線。
 
-    回傳 (problems, checked, skipped_reason)
+    分三類處理，避免把「合理的計算值」誤判成錯誤：
+      歷史低點型（失效線/支撐/前低/觀察線）→ 必須命中低點序列，否則 FAIL
+      目標型（壓力/目標/下一站）           → 只對高點序列做提示，不判 FAIL
+      計算型（止損）                       → 驗算術；算不出來只列 INFO
+
+    價位若落在數列窗口之外（例如引用 2025-04 的低點，而數列只有近 105 根），
+    無法驗證 → 列 INFO，不當成錯誤。
+
+    回傳 (problems, checked, skipped_reason, infos)
     """
-    low_series = []
-    for name, info in arrays.items():
-        v = info.get("values")
-        if not v:
-            continue
-        if re.search(r"(?i)^(l|lo|low)\d+$|(^|_)low$", name) and len(v) > 5:
-            low_series.append((name, v[-260:]))
-    if not low_series:
-        return [], 0, "找不到低點數列（需 var/window 形式且含 low/L）"
+    text = _visible(html)
+    low_series = _price_series(arrays, "low")
+    high_series = _price_series(arrays, "high")
+    if not low_series and not high_series:
+        return [], 0, ("找不到低點／高點數列（需 var/window 形式且含 L/LO/low/H/high，"
+                       "或巢狀 K 陣列）"), []
 
-    claims = []
-    for m in _CLAIM_RE.finditer(html):
-        # 「扣 0.75% 成本」這類百分比不是價位
-        if m.end() < len(html) and html[m.end()] == "%":
-            continue
-        claims.append((m.group(1), float(m.group(2))))
-    if not claims:
-        return [], 0, "報告內找不到失效線/止損/支撐的具體價位"
-
-    problems = []
+    problems, infos = [], []
     checked = 0
-    for label, price in claims:
-        if price <= 0:
-            continue
-        checked += 1
+
+    def nearest(series, price):
         best = None
-        for name, v in low_series:
+        for name, v in series:
             for x in v:
-                if x is None:
-                    continue
                 d = abs(x - price)
                 if best is None or d < best[0]:
                     best = (d, x, name)
-        if best and best[0] > 0.0015 * price:
-            problems.append(
-                f"{label} {price} 在近 260 根低點中找不到對應值"
-                f"（最接近 {best[1]:.3f}，差 {best[0]:.3f}，來源 {best[2]}）"
-            )
-    return problems, checked, None
+        return best
+
+    def window(series):
+        lo = min(min(v) for _, v in series)
+        hi = max(max(v) for _, v in series)
+        return lo, hi
+
+    # ---- 歷史低點型：這裡才是真正的「錯價位」檢查
+    if low_series:
+        for m in _LOW_CLAIM_RE.finditer(text):
+            if m.end() < len(text) and text[m.end()] == "%":
+                continue
+            label, price = m.group(1), float(m.group(2))
+            if price <= 0:
+                continue
+            checked += 1
+            lo, hi = window(low_series)
+            best = nearest(low_series, price)
+            if not (lo * 0.995 <= price <= hi * 1.005):
+                infos.append(f"{label} {price} 超出數列窗口（{lo:.3f}–{hi:.3f}），"
+                             f"無法驗證（可能引用更早的低點）")
+            elif best and best[0] > 0.0015 * price:
+                problems.append(
+                    f"{label} {price} 在近 260 根低點中找不到對應值"
+                    f"（最接近 {best[1]:.3f}，差 {best[0]:.3f}，來源 {best[2]}）")
+
+    # ---- 目標型：只提示，不判 FAIL（可能是分析師目標價或推導值）
+    if high_series:
+        for m in _HIGH_CLAIM_RE.finditer(text):
+            if m.end() < len(text) and text[m.end()] == "%":
+                continue
+            label, price = m.group(1), float(m.group(2))
+            if price <= 0:
+                continue
+            lo, hi = window(high_series)
+            best = nearest(high_series, price)
+            if not (lo * 0.995 <= price <= hi * 1.005):
+                infos.append(f"{label} {price} 超出高點窗口（{lo:.3f}–{hi:.3f}），"
+                             f"未自動驗證（分析師目標價或更早期高點屬正常）")
+            elif best and best[0] > 0.0015 * price:
+                infos.append(f"{label} {price} 未落在近 260 根高點上"
+                             f"（最接近 {best[1]:.3f}，差 {best[0]:.3f}，來源 {best[2]}）")
+
+    # ---- 計算型：止損價不是歷史低點，改驗算術
+    for m in _STOP_CLAIM_RE.finditer(text):
+        price = float(m.group(2))
+        if price <= 0:
+            continue
+        checked += 1
+        status, detail = _verify_stop_arithmetic(text, m, price)
+        if status == "bad":
+            problems.append(f"{m.group(1)} {price} 算術不符：{detail}")
+        elif status == "unknown":
+            infos.append(f"{m.group(1)} {price} 屬計算型，{detail}（不計入錯誤）")
+
+    if not checked:
+        return [], 0, "報告內找不到失效線/支撐/前低/止損的具體價位", infos
+    return problems, checked, None, infos
 
 
 def check_small_sample(html):
@@ -382,7 +546,9 @@ def main(argv):
     else:
         print("  [PASS] 指標一致性 — 未發現同指標多值")
 
-    problems, checked, reason = check_price_claims(html, arrays)
+    problems, checked, reason, infos = check_price_claims(html, arrays)
+    for info in infos:
+        print(f"  [INFO] 價位對照 — {info}")
     if reason:
         skipped.append("價位對照")
         print(f"  [SKIP] 價位對照 — {reason}")
@@ -392,7 +558,7 @@ def main(argv):
         for p in problems:
             print(f"          {p}")
     else:
-        print(f"  [PASS] 價位對照 — {checked} 處均能在近 260 根低點中找到")
+        print(f"  [PASS] 價位對照 — {checked} 處均能在近 260 根低點中找到／算術相符")
 
     small = check_small_sample(html)
     if small:

@@ -160,7 +160,7 @@ footer p{margin-bottom:8px}
   <thead><tr><th>事件（當前狀態）</th><th>n</th><th>T+20 均值</th><th>T+20 中位</th><th>T+20 勝率</th><th>MAE 中位</th></tr></thead>
   <tbody>
     <tr class="hl"><td><b>01164</b> 反彈至 MA60＋RSI≥60</td><td>41</td><td>+3.18%</td><td class="down"><b>−1.61%</b></td><td class="down">42.5%</td><td>−10.5%</td></tr>
-    <tr class="hl"><td><b>01164</b> 自 250 日低反彈 10–30%</td><td>44</td><td>+3.47%</td><td>0.00%</td><td class="down">46.5%</td><td>−8.1%</td></tr>
+    <tr class="hl"><td><b>01164</b> 自 250 日低反彈 10–30%</td><td>77</td><td>+3.00%</td><td>+0.56%</td><td>50.0%</td><td>−6.0%</td></tr>
     <tr><td>01164 廣義超賣（RSI6&lt;30）</td><td>71</td><td>+1.80%</td><td>0.00%</td><td class="down">47.9%</td><td>−9.6%</td></tr>
     <tr><td>01164 假破位</td><td>8</td><td>+4.57%</td><td>+5.56%</td><td>62.5%</td><td>−10.4%</td></tr>
     <tr class="base"><td>01164 隨機基準（每 20 日進場）</td><td>133</td><td>+2.86%</td><td>0.00%</td><td>49.6%</td><td>—</td></tr>
@@ -170,6 +170,7 @@ footer p{margin-bottom:8px}
     <tr class="base"><td>09696 隨機基準（每 20 日進場）</td><td>40</td><td>−0.29%</td><td>−1.94%</td><td>42.5%</td><td>—</td></tr>
   </tbody>
 </table>
+<p style="margin:10px 16px 14px;font-size:11.5px;color:#6b7280;line-height:1.7">RB 列以現行 <code>EVENT_SPECS["R2"]</code> 重跑：n=77（T+20 可用 76、T+40 可用 74）。T+40 中位 <b>+1.64%</b>、勝率 <b>52.7%</b>、MAE 中位 <b>−8.54%</b>；同期隨機基準 T+40 中位 −0.87%、勝率 47.0%。原稿的 n=44／+5.32%／57.1% 來自已刪除的臨時腳本，無法複現，已全部替換。</p>
 </div>
 
 <div class="warn-box">
@@ -193,8 +194,8 @@ footer p{margin-bottom:8px}
     <tr><td>01164 M60 · −9%</td><td class="down">−1.18%</td><td class="down">−0.70%</td><td class="down">−0.37%</td></tr>
     <tr><td>01164 M60 · −12%</td><td class="down">−1.28%</td><td class="down">−0.98%</td><td class="down">−0.73%</td></tr>
     <tr><td>01164 M60 · −15%</td><td class="down">−1.48%</td><td class="down">−1.31%</td><td class="down">−0.82%</td></tr>
-    <tr class="hl"><td><b>01164 RB · −12%</b></td><td>+0.61%</td><td class="up"><b>+1.92%</b></td><td>+1.25%</td></tr>
-    <tr class="hl"><td><b>01164 RB · −9%</b></td><td>+0.17%</td><td class="up"><b>+1.32%</b></td><td>+0.78%</td></tr>
+    <tr class="hl"><td><b>01164 RB · −12%</b></td><td>+0.00%</td><td class="up"><b>+1.28%</b></td><td>+1.05%</td></tr>
+    <tr class="hl"><td><b>01164 RB · −9%</b></td><td>+0.44%</td><td class="up"><b>+1.65%</b></td><td>+1.68%</td></tr>
     <tr><td>09696 WR · −9%</td><td class="down">−4.67%</td><td class="down">−3.70%</td><td class="down">−3.04%</td></tr>
     <tr><td>09696 WR · −12%</td><td class="down">−5.28%</td><td class="down">−4.31%</td><td class="down">−3.65%</td></tr>
     <tr><td>09696 WR · −15%</td><td class="down">−5.62%</td><td class="down">−4.66%</td><td class="down">−3.99%</td></tr>
@@ -203,7 +204,7 @@ footer p{margin-bottom:8px}
 </div>
 
 <div class="note-box">
-  <b>01164 的兩種定義在打架，而這個矛盾本身是資訊：</b>M60（反彈到壓力）在 20 日內全部負期望；RB（自低點反彈 10–30%）在 T+40 的中位是 +5.32%、勝率 57.1%。<b>翻譯成交易語言：短線已無賠率，中線仍有空間，但需要忍受一次回撤（MAE 中位 −8.1%）。</b><br><br>
+  <b>01164 的兩種定義在打架，但幅度比原稿小得多：</b>M60（反彈到壓力）在 20 日內全部負期望；RB（自低點反彈 10–30%）在 T+40 的中位是 <b>+1.64%</b>、勝率 <b>52.7%</b>（n=74），同期隨機基準是 −0.87% / 47.0%——<b>中位超額 +2.51pp、勝率超額 +5.7pp</b>。<b>翻譯成交易語言：短線（T+20 中位 +0.56%，基準 0.00%）已無賠率；中線只有薄邊際，扣掉 0.75% 來回成本後約 +0.9%，且要先承受 MAE 中位 −8.54% 的回撤。這不足以支撐「重倉等反彈」，只支撐「小倉、有止損、願意等」。</b><br><br>
   <b>09696 沒有這種分歧：</b>三個止損寬度 × 三個目標，九組全部為負。止損放寬只是把虧損速度調慢，不會把期望轉正。
 </div>
 
@@ -301,7 +302,7 @@ footer p{margin-bottom:8px}
   <tbody>
     <tr><td>事件淨期望 &lt; 隨機基準</td><td class="down"><b>是</b>（M60：−1.61% vs 0.00%）</td><td class="down"><b>是</b>（WR：−6.74% vs −1.94%）</td></tr>
     <tr><td>扣成本後淨期望 &lt; 0</td><td class="down"><b>是</b>（M60 九組全負）</td><td class="down"><b>是</b>（WR 九組全負）</td></tr>
-    <tr><td>事件 n &lt; 10</td><td>否（41 / 44）</td><td>否（16）</td></tr>
+    <tr><td>事件 n &lt; 10</td><td>否（41 / 77）</td><td>否（16）</td></tr>
     <tr><td>近三年勝率 &lt; 50%</td><td class="down"><b>是</b>（2026 年 0%，n=2；2025 年 50%）</td><td class="down"><b>是</b>（2023 20%、2024 25%）</td></tr>
     <tr><td>仍處真破位序列</td><td>否（近 120 日僅 1 次真破位）</td><td class="down"><b>是</b>（近 120 日 10 次真破位）</td></tr>
     <tr><td>合理倉位 &lt; 1 手（10 萬資金）</td><td>否（−12% 止損可買 1 手）</td><td>否（−12% 止損可買 2 手）</td></tr>
@@ -343,7 +344,7 @@ footer p{margin-bottom:8px}
 <div class="card">
   <p style="font-size:12.5px;color:#4b5563;line-height:1.9">
   <b>方法局限：</b><br>
-  ① 01164 的 M60 / RB 事件為本次自定義，參數（±2.5% × RSI≥60、10–30% 反彈）未經跨標的驗證，只在此標的上有效。<br>
+  ① 01164 的 M60 / RB 事件為本次自定義，參數（±2.5% × RSI≥60、10–30% 反彈）未經跨標的驗證，只在此標的上有效。其中 <b>RB 的原稿 n=44 已證實不可複現</b>（當時用臨時腳本，該腳本已刪除）；本版已改用現行 <code>EVENT_SPECS["R2"]</code> 的 n=77 重算，T+40 中位由 +5.32% 降為 +1.64%，結論強度同步下調。<br>
   ② 09696 的 WR 事件 n=16，樣本偏薄；且 2022-07 上市至今僅 1,068 根日 K，無法覆蓋上一輪完整週期。<br>
   ③ 09696 的歷史統計存在明顯時期偏差：2023 年勝率 20%、2024 年 25%，遠低於合併數字。<br>
   ④ 「曾觸及」為 20 日內任一日的高/低點觸及，不代表收盤價，也不代表可成交價。<br>
@@ -486,10 +487,10 @@ function idxOf(D, date) { return D.indexOf(date); }
         axisLabel: { fontSize: 10, color: '#9ca3af', formatter: '{value}%' }, splitLine: { show: false } }
     ],
     series: [
-      { name: 'T+20 中位', type: 'bar', data: [-1.61, 0.00, 0.00, -6.74, -4.80, -1.94], barWidth: 26,
+      { name: 'T+20 中位', type: 'bar', data: [-1.61, 0.56, 0.00, -6.74, -4.80, -1.94], barWidth: 26,
         itemStyle: { color: p => p.value >= 0 ? C_UP : C_DN, borderRadius: 3 },
         label: { show: true, position: 'top', fontSize: 10, color: '#374151', formatter: p => p.value.toFixed(2) + '%' } },
-      { name: '勝率', type: 'line', yAxisIndex: 1, data: [42.5, 46.5, 49.6, 26.7, 23.1, 42.5],
+      { name: '勝率', type: 'line', yAxisIndex: 1, data: [42.5, 50.0, 49.6, 26.7, 23.1, 42.5],
         symbol: 'circle', symbolSize: 6, lineStyle: { width: 1.6, color: '#1a1d21' },
         itemStyle: { color: '#1a1d21' }, label: { show: true, position: 'bottom', fontSize: 9.5, color: '#6b7280', formatter: '{c}%' } }
     ]
@@ -502,7 +503,7 @@ function idxOf(D, date) { return D.indexOf(date); }
   const stops = ['-9%', '-12%', '-15%'];
   const data = [
     [-1.18, -0.70, -0.37], [-1.28, -0.98, -0.73], [-1.48, -1.31, -0.82],
-    [0.17, 1.32, 0.78], [0.61, 1.92, 1.25], [0.03, 1.27, 0.60],
+    [0.44, 1.65, 1.68], [0.00, 1.28, 1.05], [0.06, 1.41, 1.20],
     [-4.67, -3.70, -3.04], [-5.28, -4.31, -3.65], [-5.62, -4.66, -3.99]
   ];
   const series = ['01164 M60', '01164 RB', '09696 WR'].map((name, gi) => ({
