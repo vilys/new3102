@@ -10,6 +10,17 @@ indicators.py — 本地技術指標。口徑固定，避免各家平台數值�
 全部函式回傳與輸入等長的 list，前段不足期數處為 None。
 """
 
+import sys
+
+
+def setup_console():
+    """把 stdout/stderr 切到 UTF-8（Windows cp950 console 會 UnicodeEncodeError）。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
 
 def sma(x, k):
     out = [None] * len(x)
@@ -188,6 +199,6 @@ def summary_at(rows, idx=None):
 
 if __name__ == "__main__":
     import json
-    import sys
+    setup_console()
     rows = json.load(open(sys.argv[1], encoding="utf-8"))
     summary_at(rows, int(sys.argv[2]) if len(sys.argv) > 2 else None)

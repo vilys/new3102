@@ -20,6 +20,35 @@ import sys
 
 from indicators import compute_all
 
+
+def setup_console():
+    """把 stdout/stderr 切到 UTF-8（Windows cp950 console 會 UnicodeEncodeError）。"""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
+# 樣本量四級（對齊 references/statistics-protocol.md 第十節）
+def sample_level(n):
+    if n >= 100:
+        return "A", "可給勝率與期望值"
+    if n >= 30:
+        return "B", "可給方向與粗略勝率"
+    if n >= 10:
+        return "C", "只能說方向，不得給小數勝率"
+    return "D", "僅供軼事，禁止用勝率下結論"
+
+
+def fmt_win(n, win):
+    """依樣本量決定勝率怎麼印：<10 遮蔽；10–29 只給整數。"""
+    if n < 10:
+        return "  —"
+    if n < 30:
+        return f"{win:3.0f}%"
+    return f"{win:3.1f}%"
+
 # ---------------------------------------------------------------- 事件定義
 # 全部以「當日收盤」為判定基準，避免用未來資訊。
 EVENT_SPECS = {
@@ -55,6 +84,15 @@ EVENT_SPECS = {
     # D 深度回撤但無均線/RSI 條件（週期股專用）
     "D": lambda I, i: I["prior_high"][i] is not None and I["prior_high"][i] > 0
                      and I["close"][i] / I["prior_high"][i] - 1 <= -0.50,
+    # R1 反彈至 MA60 附近且動能偏強（2026-11 雙標的報告用；n=41）
+    #    「反彈到壓力位」的狀態，不是「探底」。
+    "R1": lambda I, i: I["ma60"][i] not in (None, 0) and I["rsi6"][i] is not None
+                      and abs(I["close"][i] / I["ma60"][i] - 1) <= 0.025
+                      and I["rsi6"][i] >= 60,
+    # R2 自 250 日低反彈 10–30%（2026-11 雙標的報告用；n=44）
+    #    看的是「已經離底多遠」，而非「離底多近」。
+    "R2": lambda I, i: I["prior_low"][i] not in (None, 0)
+                      and 0.10 <= I["close"][i] / I["prior_low"][i] - 1 <= 0.30,
 }
 
 EVENT_NAMES = {
@@ -67,6 +105,8 @@ EVENT_NAMES = {
     "H": "深度回撤 ≥40% 且超賣",
     "S": "極度超賣 RSI6<15",
     "D": "較 252 日高回撤 ≥50%",
+    "R1": "反彈至 MA60 ±2.5% 且 RSI6≥60",
+    "R2": "自 250 日低反彈 10–30%",
 }
 
 
@@ -340,36 +380,179 @@ def volume_profile(rows, buckets=24, lookback=250):
     }
 
 
-def summary_table(rows, I, kinds=("A", "N", "F", "G", "I", "H"), H=(10, 20, 40), cooldown=10):
-    """印出多事件對照表，並附隨機基準。"""
-    print(f"{'事件':<28}{'n':>5}{'T+20均值':>10}{'T+20中位':>10}{'勝率':>8}{'MAE中位':>9}")
-    print("-" * 72)
+def summary_table(rows, I, kinds=("A", "N", "F", "G", "I", "H"), H=(10, 20, 40),
+                  cooldown=10, show_years=False):
+    """印出多事件對照表，並附隨機基準。
+
+    ⚠️ 這裡會執行 statistics-protocol 第十節的樣本量紀律，不是只印出來：
+       n<10       → 勝率欄遮蔽為「—」，表尾列為禁止下結論
+       10<=n<30   → 勝率只給整數（不給小數點）
+       n>=30      → 正常顯示
+    """
+    print(f"{'事件':<28}{'n':>5}{'T+20均值':>10}{'T+20中位':>10}{'勝率':>8}"
+          f"{'MAE中位':>9}{'級別':>6}")
+    print("-" * 78)
+    banned, weak = [], []
     for k in kinds:
         ev = build_events(I, k, cooldown)
         if not ev:
-            print(f"{k} {EVENT_NAMES.get(k,''):<26}{0:>5}")
+            print(f"{k} {EVENT_NAMES.get(k,''):<26}{0:>5}{'—':>10}{'—':>10}{'—':>8}{'—':>9}{'D':>6}")
+            banned.append(k)
             continue
         fs = forward_stats(rows, ev, H)
         s = fs.get(20)
         if not s:
             continue
-        print(f"{k} {EVENT_NAMES.get(k,''):<26}{s['n']:>5}{s['mean']:>10.2f}{s['median']:>10.2f}"
-              f"{s['win']:>7.1f}%{s['mae_med']:>9.2f}")
+        lvl, _ = sample_level(s["n"])
+        if s["n"] < 10:
+            banned.append(k)
+        elif s["n"] < 30:
+            weak.append(k)
+        print(f"{k} {EVENT_NAMES.get(k,''):<26}{s['n']:>5}{s['mean']:>10.2f}"
+              f"{s['median']:>10.2f}{fmt_win(s['n'], s['win']):>8}"
+              f"{s['mae_med']:>9.2f}{lvl:>6}")
+        if show_years:
+            _print_year_split(rows, ev, 20, indent="      ")
+
     base = baseline_indices(len(rows), 20)
     bs = forward_stats(rows, base, H).get(20)
     if bs:
-        print("-" * 72)
+        print("-" * 78)
         print(f"{'隨機基準（每20日進場）':<26}{bs['n']:>5}{bs['mean']:>10.2f}"
-              f"{bs['median']:>10.2f}{bs['win']:>7.1f}%{'-':>9}")
+              f"{bs['median']:>10.2f}{fmt_win(bs['n'], bs['win']):>8}{'-':>9}{'A':>6}")
+
+    print()
+    if banned:
+        print(f"裁決：{'/'.join(banned)} 樣本 n<10（或 n=0）→ 禁止用其勝率作為進場依據，只能當軼事。")
+    if weak:
+        print(f"注意：{'/'.join(weak)} 樣本 10–29 → 只能說方向，不得引用小數點勝率。")
+    if not banned and not weak:
+        print("樣本量：全部事件 n≥30，可比較方向與勝率（仍需做分年檢查）。")
+
+
+def _print_year_split(rows, idxs, H=20, indent="  "):
+    ys = year_split(rows, idxs, H)
+    if not ys:
+        print(f"{indent}分年：無可用樣本")
+        return
+    parts = [f"{y} n={v['n']} 勝{fmt_win(v['n'], v['win']).strip()} 均值{v['mean']:+.1f}%"
+             for y, v in ys.items()]
+    print(f"{indent}分年：" + " | ".join(parts))
+    years = sorted(ys)
+    recent = years[-3:]
+    tot = sum(ys[y]["n"] for y in recent)
+    if tot:
+        wins = sum(ys[y]["win"] * ys[y]["n"] for y in recent) / tot
+        if tot < 10:
+            print(f"{indent}近三年（{'/'.join(recent)}）合計 n={tot} → 樣本不足，不作勝率結論")
+        else:
+            flag = "⚠️ <50%，整體數字被早年拉高" if wins < 50 else "≥50%"
+            print(f"{indent}近三年（{'/'.join(recent)}）合計 n={tot} 勝率 {wins:.1f}% → {flag}")
+
+
+def _opt(args, name, default=None):
+    """取 --name=value 或 --name value。"""
+    for i, a in enumerate(args):
+        if a.startswith(name + "="):
+            return a.split("=", 1)[1]
+        if a == name and i + 1 < len(args) and not args[i + 1].startswith("--"):
+            return args[i + 1]
+    return default
+
+
+def _has(args, name):
+    return any(a == name or a.startswith(name + "=") for a in args)
+
+
+def _print_matrix(rows, I, k, stops, targets, cost, H=20, cooldown=10):
+    ev = build_events(I, k, cooldown)
+    if not ev:
+        print(f"\n路徑矩陣 [{k}]：無事件")
+        return
+    usable = [i for i in ev if i + H < len(rows)]
+    if not usable:
+        print(f"\n路徑矩陣 [{k}]：事件 {len(ev)} 個，但全部距序列末端不足 {H} 日，無法模擬")
+        return
+    base = baseline_indices(len(rows), 20)
+    print(f"\n路徑矩陣 [{k}] 事件 n={len(ev)} / 可用 n={len(usable)}  成本 {cost}%")
+    print("  （每格附同參數隨機基準的超額 pp；超額 ≤0 代表訊號不優於『什麼都不看』）")
+    excesses, nets = [], []
+    for s in stops:
+        line = f"  止損{s:>5.0f}% "
+        for t in targets:
+            r = path_stats(rows, usable, t, s, H, cost)
+            b = path_stats(rows, base, t, s, H, cost)
+            if not r:
+                continue
+            ex = r["exp_net"] - b["exp_net"] if b else None
+            excesses.append((ex, s, t))
+            nets.append((r["exp_net"], s, t))
+            ex_s = f"{ex:+6.2f}" if ex is not None else "   n/a"
+            line += (f"| 目標+{t:.0f}% 勝{fmt_win(r['n'], r['p_win'])}"
+                     f" 淨{r['exp_net']:+6.2f}% 超{ex_s}pp ")
+        print(line)
+    if excesses:
+        best = max(excesses, key=lambda x: (x[0] if x[0] is not None else -9e9))
+        pos = sum(1 for e, _, _ in excesses if e is not None and e > 0)
+        worst_net = min(n for n, _, _ in nets)
+        if best[0] is None:
+            verdict = "無基準可比，不得下結論"
+        elif best[0] <= 0:
+            verdict = "無 Alpha——全部格位未勝過同參數隨機基準"
+        elif worst_net <= 0:
+            verdict = (f"部分格位優於基準（{pos}/{len(excesses)}），但存在負期望格"
+                       f"（最低 {worst_net:+.2f}%），不可整體宣稱正期望")
+        else:
+            verdict = f"有超額（{pos}/{len(excesses)} 格為正），最佳 +{best[0]:.2f}pp"
+        print(f"  裁決：{verdict}")
+        if len(usable) < 30:
+            print(f"  ⚠️ 可用樣本 n={len(usable)}（<30）：以上數字只能說方向，且必須做冷卻期敏感度檢查"
+                  f"（加 --cooldown-sweep=5,10,20）。")
+            _print_year_split(rows, usable, H, indent="  ")
+
+
+def _cooldown_sweep(rows, I, k, cds, stop, target, cost, H=20):
+    print(f"\n冷卻期敏感度 [{k}]  止損 {stop:+.0f}% / 目標 +{target:.0f}% / T+{H}")
+    for cd in cds:
+        ev = build_events(I, k, cd)
+        r = path_stats(rows, ev, target, stop, H, cost)
+        if not r:
+            print(f"  cooldown={cd:>3}  n=0")
+            continue
+        print(f"  cooldown={cd:>3}  n={r['n']:>3}  勝{fmt_win(r['n'], r['p_win'])}  "
+              f"淨{r['exp_net']:+.2f}%")
 
 
 def _cli(argv):
+    setup_console()
     if not argv:
         print(__doc__)
         return 1
     rows = json.load(open(argv[0], encoding="utf-8"))
-    I = compute_all(rows)
     args = argv[1:]
+
+    if "--insecure" in args:
+        from market_data import set_insecure_tls
+        set_insecure_tls(True)
+        print("# ⚠️ 已關閉 TLS 憑證驗證（--insecure）：資料可能被替換，勿用於實盤決策",
+              file=sys.stderr)
+
+    # 盤中補 K 必須在任何指標計算之前完成
+    appended = False
+    if _has(args, "--intraday"):
+        sym = _opt(args, "--intraday")
+        if not sym:
+            print("錯誤：--intraday 需要標的代號，例如 --intraday=hk01164", file=sys.stderr)
+            return 2
+        from market_data import quote, append_intraday
+        before = rows[-1][0]
+        q = quote(sym)
+        rows = append_intraday(rows, q)
+        appended = True
+        print(f"# 已補當日盤中 K：{rows[-1][0]} 收 {rows[-1][2]:.3f} "
+              f"量 {rows[-1][5]:,.0f}（原本最後一根 {before}）", file=sys.stderr)
+
+    I = compute_all(rows)
 
     if "--breaks" in args:
         bs = break_sequence(classify_breaks(I))
@@ -382,43 +565,69 @@ def _cli(argv):
                   f"低 {b['low']:.3f} 收 {b['close']:.3f} seq={b['seq']}")
         print("\n序號分桶（T+20）:")
         for k, v in seq_stats(rows, bs).items():
-            print(f"  第{k:>2}次 n={v['n']:>3} 均值 {v['mean']:+.2f}% 中位 {v['median']:+.2f}% 勝率 {v['win']:.1f}%")
+            lvl, _ = sample_level(v["n"])
+            warn = "  ⚠️ 樣本不足，禁止下結論" if v["n"] < 10 else ""
+            print(f"  第{k:>2}次 n={v['n']:>3} 均值 {v['mean']:+.2f}% "
+                  f"中位 {v['median']:+.2f}% 勝率 {fmt_win(v['n'], v['win'])}{warn}")
+        print("\n⚠️ 破位序列的『第 N 次』規律目前只有單標的觀察，各桶 n<10 時不可當通則。")
         return 0
 
     if "--profile" in args:
         p = volume_profile(rows)
-        print(f"現價 {rows[-1][2]:.3f}；上方量佔 {p['above_pct']:.1f}%，下方 {p['below_pct']:.1f}%")
+        asof = rows[-1][0]
+        tag = "即時（已補當日 K）" if appended else "非即時"
+        print(f"現價 {rows[-1][2]:.3f}（{asof} {'收盤' if not appended else '盤中'}，{tag}）")
+        print(f"上方量佔 {p['above_pct']:.1f}%，下方 {p['below_pct']:.1f}%")
+        if not appended:
+            print("提示：交易時段內請加 --intraday=<sym>，否則『當前狀態』是上一交易日。")
         for b in p["buckets"]:
             bar = "█" * int(b["share"] / 2)
             print(f"  {b['low']:7.2f}-{b['high']:7.2f} {b['share']:5.1f}% {bar}")
         return 0
 
     kinds = ["A", "N", "F", "G", "I", "H"]
-    for a in args:
-        if a.startswith("--events="):
-            kinds = [x.strip() for x in a.split("=", 1)[1].split(",")]
-    summary_table(rows, I, kinds)
+    ev_arg = _opt(args, "--events")
+    if ev_arg:
+        kinds = [x.strip() for x in ev_arg.split(",")]
+
+    cd = int(_opt(args, "--cooldown", "10"))
+    summary_table(rows, I, kinds, cooldown=cd, show_years=("--years" in args))
 
     stops, targets, cost = (-9, -12, -15), (12, 16), 0.75
-    for a in args:
-        if a.startswith("--stops="):
-            stops = tuple(float(x) for x in a.split("=", 1)[1].split(","))
-        elif a.startswith("--targets="):
-            targets = tuple(float(x) for x in a.split("=", 1)[1].split(","))
-        elif a.startswith("--cost="):
-            cost = float(a.split("=", 1)[1])
+    if _opt(args, "--stops"):
+        stops = tuple(float(x) for x in _opt(args, "--stops").split(","))
+    if _opt(args, "--targets"):
+        targets = tuple(float(x) for x in _opt(args, "--targets").split(","))
+    if _opt(args, "--cost"):
+        cost = float(_opt(args, "--cost"))
 
-    for k in kinds[:2]:
-        ev = build_events(I, k)
-        if not ev:
+    mv = _opt(args, "--matrix-events") or _opt(args, "--matrix")
+    if mv:
+        matrix_kinds = [x.strip() for x in mv.split(",")]
+    else:
+        matrix_kinds = kinds[:2]
+        if len(kinds) > 2:
+            print(f"\n（僅輸出前 2 個事件的路徑矩陣：{','.join(matrix_kinds)}。"
+                  f"用 --matrix-events={','.join(kinds)} 可指定全部。）")
+
+    for k in matrix_kinds:
+        if k not in EVENT_SPECS:
+            print(f"\n跳過未知事件 {k}（可用：{','.join(EVENT_SPECS)}）")
             continue
-        print(f"\n路徑矩陣 [{k}] n={len(ev)}  成本 {cost}%")
-        for s in stops:
-            line = f"  止損{s:>5.0f}% "
-            for t in targets:
-                r = path_stats(rows, ev, t, s, 20, cost)
-                line += f"| 目標+{t:.0f}% 勝{r['p_win']:4.0f}% 淨{r['exp_net']:+6.2f}% " if r else ""
-            print(line)
+        _print_matrix(rows, I, k, stops, targets, cost, cooldown=cd)
+
+    sweep = _opt(args, "--cooldown-sweep")
+    if sweep:
+        cds = [int(x) for x in sweep.split(",")]
+        for k in matrix_kinds:
+            if k in EVENT_SPECS:
+                _cooldown_sweep(rows, I, k, cds, stops[0], targets[0], cost)
+    elif matrix_kinds and matrix_kinds[0] in EVENT_SPECS:
+        ev = build_events(I, matrix_kinds[0], cd)
+        usable = [i for i in ev if i + 20 < len(rows)]
+        if 0 < len(usable) < 30:
+            _cooldown_sweep(rows, I, matrix_kinds[0], [5, 10, 20],
+                            stops[0], targets[0], cost)
     return 0
 
 

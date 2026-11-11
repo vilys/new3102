@@ -19,14 +19,44 @@ market_data.py — 日K抓取、合併、盤中補K、報價。
 """
 
 import json
+import os
 import ssl
 import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
+
+def setup_console():
+    """把 stdout/stderr 切到 UTF-8。
+
+    Windows 繁中 console 預設 cp950，騰訊回傳的簡體名稱（如「中广核矿业」）
+    無法用 cp950 編碼，會直接 UnicodeEncodeError。Python 的 Windows console
+    流是 WriteConsoleW 包裝，reconfigure 成 utf-8 後即可正確顯示。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
+# 預設驗證 TLS 憑證。被中間人餵假價格算出假機率，且不會報錯。
 _CTX = ssl.create_default_context()
-_CTX.check_hostname = False
-_CTX.verify_mode = ssl.CERT_NONE
+TLS_INSECURE = False
+
+
+def set_insecure_tls(enabled=True):
+    """顯式關閉 TLS 驗證（僅在端點憑證確有問題時使用）。"""
+    global _CTX, TLS_INSECURE
+    TLS_INSECURE = bool(enabled)
+    _CTX = ssl.create_default_context()
+    if enabled:
+        _CTX.check_hostname = False
+        _CTX.verify_mode = ssl.CERT_NONE
+
+
+if os.environ.get("EVENT_STUDY_INSECURE_TLS") == "1":
+    set_insecure_tls(True)
 
 _UA = {"User-Agent": "Mozilla/5.0", "Referer": "https://gu.qq.com/"}
 
@@ -54,17 +84,31 @@ def _parse_tencent(payload, sym):
     try:
         j = json.loads(payload)
     except json.JSONDecodeError as exc:
-        raise FetchError(f"{sym}: 回傳非 JSON（{exc}）") from exc
+        raise FetchError(f"{sym}: 回傳非 JSON（{exc}）。可能是接口限流或降級。") from exc
     if j.get("code") not in (0, "0", None):
         raise FetchError(f"{sym}: 接口 code={j.get('code')} msg={j.get('msg')}")
     data = j.get("data")
     if not isinstance(data, dict) or sym not in data:
         # 典型失敗：data 變成 list，或 key 不存在
-        raise FetchError(f"{sym}: data 結構異常（type={type(data).__name__}）")
+        raise FetchError(
+            f"{sym}: data 結構異常（type={type(data).__name__}）。"
+            "可能是接口降級或代號格式不符。"
+        )
     d = data[sym]
     keys = [k for k in d if isinstance(d[k], list) and d[k] and isinstance(d[k][0], list)]
     if not keys:
-        raise FetchError(f"{sym}: 找不到 K 線陣列，keys={list(d)[:8]}")
+        # 區分「正常的歷史盡頭」與「結構異常」：
+        # 請求區間早於上市日時，騰訊回的是 {..., 'day': []}，這是正常 EOF，
+        # 上層 fetch_hk 的 `if not rows: break` 會正確處理。不可當成錯誤。
+        empty_bar_keys = [k for k in ("qfqday", "day", "hfqday", "week", "qfqweek")
+                          if isinstance(d.get(k), list) and not d[k]]
+        if empty_bar_keys:
+            return []
+        raise FetchError(
+            f"{sym}: 找不到 K 線陣列，keys={list(d)[:8]}。"
+            "可能原因：請求區間早於上市日（改用較晚的 --start）、"
+            "或接口降級（單次 cnt 過大，上限 1500）。"
+        )
     # 優先用 qfqday（前復權），否則 day
     key = "qfqday" if "qfqday" in keys else keys[0]
     out = []
@@ -163,6 +207,7 @@ def quote(sym):
         "price": num(3),
         "prev_close": num(4),
         "open": num(5),
+        "volume": num(6),
         "pct": num(32),
         "high": num(33),
         "low": num(34),
@@ -192,7 +237,7 @@ def append_intraday(rows, q):
         q["price"],
         q.get("high") or q["price"],
         q.get("low") or q["price"],
-        0.0,
+        float(q.get("volume") or 0.0),
     ]
     out = [r for r in rows if r[0] != today]
     out.append(bar)
@@ -212,10 +257,17 @@ def to_ohlc(rows):
 
 
 def _cli(argv):
+    setup_console()
     if not argv:
         print(__doc__)
         return 1
     cmd = argv[0]
+
+    if "--insecure" in argv:
+        set_insecure_tls(True)
+        print("# ⚠️ 已關閉 TLS 憑證驗證（--insecure）：資料可能被中間人替換，勿用於實盤決策",
+              file=sys.stderr)
+
     if cmd == "quote":
         print(json.dumps(quote(argv[1]), ensure_ascii=False, indent=2))
         return 0

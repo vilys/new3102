@@ -102,13 +102,23 @@ python scripts/market_data.py quote hk01164
 
 **強制檢查**：印出的 `n` 與首尾日期。沒有確認首尾日期，不准進入統計。
 
-交易時段內必須補當日盤中 K（`append_intraday`），否則「當前狀態」是昨天的。
+交易時段內必須補當日盤中 K，否則「當前狀態」是昨天的：
+
+```bash
+python scripts/event_study.py 01164.json --intraday=hk01164 --profile
+```
+
+`--intraday` 會抓即時報價並補一根當日 K（含成交量）；未補時，`--profile` 會明確標示「某日收盤、非即時」。
 
 端點細節、`cnt=1500` 上限、分段回溯、A 股限制 → `references/data-sources.md`
 
 ### Step 2：算指標與快照
 
 ```python
+# ⚠️ 以下 import 需要 scripts/ 在 sys.path 上。兩種做法：
+#   (a) cd skill/event-study-odds/scripts 後執行
+#   (b) 在 repo 根目錄：
+import sys; sys.path.insert(0, "skill/event-study-odds/scripts")
 from indicators import compute_all, summary_at
 I = compute_all(rows)          # MA/BOLL/RSI/KDJ/MACD/ATR/prior_low
 summary_at(rows)               # 印最後一日的技術快照
@@ -129,7 +139,7 @@ ev = build_events(I, "G", cooldown=10)
 - **必須同時算 4–5 組事件**。若各組方向不一致，正確答案是「沒有穩定結論」。
 - **跑完先看 F 與 G 的 n**。若為 0，先懷疑 `prior_low` 算成了「含當日」。
 
-九個事件的精確定義、`prior_low` 的致命 bug → `references/event-library.md`
+九個基礎事件 + 兩個 2026-11 新增的狀態事件（R1/R2）的精確定義、`prior_low` 的致命 bug → `references/event-library.md`
 
 ### Step 4：前向報酬分布
 
@@ -163,6 +173,8 @@ base = baseline_indices(len(rows), step=20)
 
 同一套路徑模擬、同一組止損目標。**若事件沒有贏過它，就說「沒有統計依據」。**
 
+CLI 的路徑矩陣現在會為**每一格**附上同參數的隨機基準，直接印出超額 pp 與裁決（「無 Alpha」／「負期望」／「有超額」）。不需要自己補寫 import。
+
 ### Step 7：跨標的合併
 
 選 8–15 個同產業標的（ETF + 龍頭 + 中小型），同一事件定義分別取事件後合併。
@@ -176,10 +188,20 @@ base = baseline_indices(len(rows), step=20)
 from event_study import year_split, break_sequence, classify_breaks, seq_stats, volume_profile
 ```
 
+對應的 CLI（不必自己寫 import）：
+
+```bash
+python scripts/event_study.py 01164.json --years                 # 分年勝率
+python scripts/event_study.py 01164.json --cooldown-sweep=5,10,20 # 冷卻期敏感度
+python scripts/event_study.py 01164.json --breaks                # 破位序列（自動標註樣本不足）
+```
+
+`summary_table` 會在事件 n<30 時自動附分年表；路徑矩陣在可用樣本 n<30 時自動附冷卻期敏感度。**冷卻期不是中性參數**：實測 01164 的 N 事件在 5/10/20 日冷卻期下，淨期望從 +3.52% 擺盪到 +1.03%，差距可達 4.2pp。
+
 | 檢查 | 回答什麼 | 紅線 |
 |---|---|---|
 | **分年勝率** | 是不是被早年牛市拉高 | 近三年 <50% → 不得用整體數字進場 |
-| **破位序列序號** | 「跌這麼多次該近了嗎」 | 倒 U 型，第 1 次最差、第 4–5 次最好、第 7 次後轉差 |
+| **破位序列序號** | 「跌這麼多次該近了嗎」 | **單一標的觀察，不可當通則**：01164 實測 8 個桶全部 n<10（總事件 31 次），且形狀與舊口徑相反（第 1 次最好、第 7 次最差）。各桶 n<10 時只能說「沒有結論」 |
 | **成交分布** | 上方套牢多厚、下方是否真空 | 上方 >80% → 反彈每一步都逆風 |
 
 ### Step 9：倉位與成本
@@ -199,7 +221,14 @@ from event_study import year_split, break_sequence, classify_breaks, seq_stats, 
 python scripts/verify_report.py report.html
 ```
 
-必須看到 `全部通過，可交付`。報告結構與免責聲明 → `references/reporting.md`
+必須看到 `全部通過`。**若顯示「部分通過，需人工確認」，代表有檢查被跳過或觸發警告**（例如找不到 node、報告未用 `var/window` 數列、指標多值），不得當作已驗證。
+
+自檢器現在分兩層：
+
+- 渲染層：JS 語法、數列長度、重複鍵（含嵌套物件）
+- 財務啟發式：同一指標是否多值、失效線/止損價位是否對得上原始 K 低點、n<10 是否仍給小數勝率、免責聲明是否存在
+
+⚠️ 它**不能**驗證估值、事件定義是否合理、或數字是否符合你的商業判斷。報告結構與免責聲明 → `references/reporting.md`
 
 ---
 
@@ -228,13 +257,22 @@ python scripts/verify_report.py report.html
 | `scripts/market_data.py` | 港股分段抓取、Yahoo 美股、報價、盤中補 K |
 | `scripts/indicators.py` | MA/BOLL/RSI/KDJ/MACD/ATR/prior_low，口徑固定 |
 | `scripts/event_study.py` | 事件、去重、前向分布、路徑矩陣、隨機基準、破位分類、序列、分年、成交分布 |
-| `scripts/verify_report.py` | HTML 交付前自檢（JS 語法、數列長度、重複鍵） |
+| `scripts/verify_report.py` | HTML 交付前自檢（渲染層＋財務啟發式） |
 
 常用指令：
 
 ```bash
-# 多事件對照表 + 隨機基準
+# 多事件對照表 + 隨機基準（n<10 自動遮蔽勝率）
 python scripts/event_study.py 01164.json --events=A,N,F,G,I,H
+
+# 補當日盤中 K（交易時段內必做）
+python scripts/event_study.py 01164.json --intraday=hk01164 --profile
+
+# 分年勝率、冷卻期敏感度
+python scripts/event_study.py 01164.json --years --cooldown-sweep=5,10,20
+
+# 指定要輸出矩陣的事件（預設只輸出前 2 個）
+python scripts/event_study.py 01164.json --events=G,N,F,A --matrix-events=G,N
 
 # 破位分類與序列分析
 python scripts/event_study.py 01164.json --breaks
@@ -244,9 +282,13 @@ python scripts/event_study.py 01164.json --profile
 
 # 指定止損目標
 python scripts/event_study.py 01164.json --stops=-9,-12,-15 --targets=12,16 --cost=0.75
+
+# 端點憑證有問題時才關閉 TLS 驗證（會印警告）
+python scripts/market_data.py hk01164 --insecure
 ```
 
-腳本已內建節流：單次最多 8 段回溯、15 個標的上限、失敗不重試。
+腳本已內建節流：單次請求上限 1500 根、最多 8 段回溯、**失敗不重試**。
+**沒有批量抓取入口**，一次只能一個標的——若要跑 13 個標的，請在外部迴圈逐一呼叫。
 
 ---
 
