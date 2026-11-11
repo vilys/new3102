@@ -15,6 +15,7 @@
 skill/event-study-odds/     可直接安裝的 skill（SKILL.md + scripts + references）
 cases/01164-cgn-mining/     中廣核礦業（01164.HK）完整研究歷程，3 份報告
 cases/09696-tianqi-lithium/ 天齊鋰業（09696.HK）完整研究歷程，2 份報告
+cases/dual-track-20261111/  雙標的對照（01164 × 09696），1 份報告
 ```
 
 安裝方式：把 `skill/event-study-odds/` 放進 `~/.workbuddy/skills/` 即可。
@@ -116,8 +117,9 @@ python skill/event-study-odds/scripts/verify_report.py report.html
 |---|---|---|
 | [01164 中廣核礦業](cases/01164-cgn-mining/) | 為何與核能同業不同步？支撐在哪？值不值得博？ | 板塊分裂＋個股利空；支撐是階梯；訊號無 Alpha，靠位置與幾何 |
 | [09696 天齊鋰業](cases/09696-tianqi-lithium/) | 用同樣方法看 9696 | 形態、統計、位置三者一致偏空；「假破位」在鋰礦無效 |
+| [雙標的對照](cases/dual-track-20261111/) | 同一天、同一套方法，兩隻標的現在各在哪個位置？ | 兩個月內角色互換；01164 短空長多，09696 統計全面偏負 |
 
-兩個案例最大的價值不是結論，是**每次結論被推翻的地方**——見 [`references/case-notes.md`](skill/event-study-odds/references/case-notes.md)。
+三個案例最大的價值不是結論，是**每次結論被推翻的地方**——見 [`references/case-notes.md`](skill/event-study-odds/references/case-notes.md)。
 
 ---
 
