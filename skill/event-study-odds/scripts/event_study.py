@@ -430,9 +430,13 @@ def summary_table(rows, I, kinds=("A", "N", "F", "G", "I", "H"), H=(10, 20, 40),
     base = baseline_indices(len(rows), 20)
     bs = forward_stats(rows, base, H).get(20)
     if bs:
+        # 基準列的級別必須跟事件列走同一個 sample_level：寫死 'A' 會讓 n=7 的
+        # 基準列一邊遮蔽勝率、一邊自稱 A 級（同一列自我矛盾），也讓「超額 pp」
+        # 建立在一個被誤標的參考點上。
+        base_lvl, _ = sample_level(bs["n"])
         print("-" * 78)
         print(f"{'隨機基準（每20日進場）':<26}{bs['n']:>5}{bs['mean']:>10.2f}"
-              f"{bs['median']:>10.2f}{fmt_win(bs['n'], bs['win']):>8}{'-':>9}{'A':>6}")
+              f"{bs['median']:>10.2f}{fmt_win(bs['n'], bs['win']):>8}{'-':>9}{base_lvl:>6}")
 
     print()
     if banned:
@@ -563,6 +567,10 @@ def _print_matrix(rows, I, k, stops, targets, cost, H=20, cooldown=10):
 
 def _cooldown_sweep(rows, I, k, cds, stop, target, cost, H=20):
     print(f"\n冷卻期敏感度 [{k}]  止損 {stop:+.0f}% / 目標 +{target:.0f}% / T+{H}")
+    # 預設只掃「−9% / +12%」一格，與報告常用的 3×3 九格（10/15/20）不同。
+    # 不提示的話，讀者會拿 −0.73% 去對報告的 +0.11%，以為揭露寫錯。
+    print(f"  （目前只掃 {stop:+.0f}% / {target:+.0f}% 這一格；"
+          f"要對齊報告九格請加 --stops=-9,-12,-15 --targets=10,15,20）")
     for cd in cds:
         ev = build_events(I, k, cd)
         r = path_stats(rows, ev, target, stop, H, cost)

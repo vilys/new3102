@@ -7,6 +7,9 @@
 > 在什麼價位、用多寬的止損、博多大的目標，歷史上的勝率與淨期望是多少，
 > 以及**這個數字是否值得相信**。
 
+> **不需要任何 agent 平台。** clone 之後只要有 Python，直接跑 `skill/event-study-odds/scripts/` 就能完整使用。
+> 把目錄放進 skills 只是讓 agent 知道何時該用它——那是進階用法，不是前置條件。
+
 ---
 
 ## 目錄
@@ -18,19 +21,339 @@ cases/09696-tianqi-lithium/ 天齊鋰業（09696.HK）完整研究歷程，2 份
 cases/dual-track-20261111/  雙標的對照（01164 × 09696），1 份報告
 ```
 
-安裝方式：把 `skill/event-study-odds/` 整個目錄放進你所使用 agent 平台的 skills 目錄。
+---
+
+## 一、環境需求
+
+| 項目 | 需求 | 用在哪 |
+|---|---|---|
+| **Python** | 3.10 以上（本文件所有輸出在 **3.13.14** 實測產生；更早版本未逐一驗證） | 全部五支腳本 |
+| **Node.js** | 選用，但**交付自檢需要**。沒有 node 時 `verify_report.py` 的 JS 語法檢查會 SKIP、整體 exit 2 | `verify_report.py` 的 `node --check` |
+| **網路** | 只有抓資料需要 | `market_data.py`（港股騰訊／美股 Yahoo）；分析已抓好的 JSON 完全離線 |
+
+四支分析腳本（`market_data.py`／`indicators.py`／`event_study.py`／`selfcheck.py`）**只依賴 Python 標準庫**。
+但 `verify_report.py` 額外需要 Node.js——這一點舊版 README 寫錯了，已更正。
+
+安裝 Node.js：到 [nodejs.org](https://nodejs.org/) 下載 LTS 版，安裝後**重開終端機**，`node --version` 能印出版本號即可。沒裝也能跑分析，只是報告自檢會停在 exit 2（那不是通過）。
+
+---
+
+## 二、十分鐘從零到一個答案：09696 現在能不能買
+
+以下每條指令都可在 repo 根目錄直接照抄。數字取自 **2026-11-12 收盤**的實跑結果；你隔幾天重跑，最後幾根 K 會讓 n 變動 ±1–2，方向和結論不會因此改變。
+
+### Step 1　抓日 K + 看一眼現價
+
+```bash
+python skill/event-study-odds/scripts/market_data.py hk09696 --start 2022-07-01 --out 09696.json
+```
+
+```
+# hk09696  n=1070  2022-07-13 → 2026-11-12
+# written 09696.json
+```
+
+exit `0`。**先確認首尾日期**：起始早於上市日（2022-07）是正常的，但結束日必須是最近一個交易日。
+
+```bash
+python skill/event-study-odds/scripts/market_data.py quote hk09696
+```
+
+```json
+{
+  "symbol": "hk09696",
+  "name": "天齐锂业",
+  "price": 23.16,
+  "prev_close": 23.98,
+  "pct": -3.42,
+  "high": 23.78,
+  "low": 23.1,
+  "w52_high": 69.15,
+  "w52_low": 22.24,
+  "w52_source": "日 K 補算（2025-11-07 → 2026-11-12，250 根）"
+}
+```
+
+exit `0`。`w52_high`／`w52_low` 若端點沒給，會自動用日 K 補算（`w52_source` 會註明）；已有值時**不會**多發請求。盤中執行 `quote` 拿到的是即時價，收盤後是最後成交價。
+
+### Step 2　現在在哪個位置
+
+```bash
+python skill/event-study-odds/scripts/indicators.py 09696.json
+```
+
+```
+2026-11-12  close=23.160
+  ma5       23.7240
+  ma10      23.7260
+  ma20      23.7780
+  ma60      29.2263
+  ma120     34.4206
+  ma250     43.0501
+  boll_up   24.9295
+  boll_mid  23.7780
+  boll_dn   22.6265
+  rsi6      38.0029
+  atr       1.0403
+  atr_pct   4.4916
+```
+
+exit `0`。讀法：價格 23.16 在 MA20（23.78）之下、MA60（29.23）之下，均線全部空頭排列；RSI6 38 不超賣；ATR 4.49% 代表日均波幅約一元。**這不是「跌深」，是「弱勢盤整」。**
+
+### Step 3　把「現在」放進歷史
+
+```bash
+python skill/event-study-odds/scripts/event_study.py 09696.json --events=A,G,WR
+```
+
+```
+事件                              n    T+20均值    T+20中位      勝率    MAE中位    級別
+------------------------------------------------------------------------------
+A 廣義超賣 RSI6<30 且 close<MA60    27     -3.97     -7.79     26%   -14.68     C
+G 假破位 盤中破前低、收盤收回               13     -1.37     -4.80     23%    -7.63     C
+WR 距 250 日低 5–15%（弱勢盤整）         27     -3.94     -7.31     22%   -10.78     C
+------------------------------------------------------------------------------
+隨機基準（每20日進場）                 40     -0.29     -1.94   42.5%        -     B
+
+注意：A/G/WR 樣本 10–29 → 只能說方向，不得引用小數點勝率。
+```
+
+exit `0`。三件事同時出現：**(1)** 三組事件的 T+20 中位都是負的；**(2)** 全部輸給隨機基準（−1.94% / 42.5%）；**(3)** 樣本只有 10–29，級別 C。這已經足以支撐「沒有統計依據」。
+
+### Step 4　賠率：3×3 九格
+
+報告用的不是預設 6×5 網格，而是三種止損 × 三種目標。**不指定參數，你跑出來的表會和報告對不上。**
+
+```bash
+python skill/event-study-odds/scripts/event_study.py 09696.json --events=WR \
+  --stops=-9,-12,-15 --targets=10,15,20
+```
+
+```
+路徑矩陣 [WR] 事件 n=29 / 可用 n=27  成本 0.75%
+  （每格附同參數隨機基準的超額 pp；超額 ≤0 代表訊號不優於『什麼都不看』）
+  止損   -9% | 目標+10% 勝 30% 淨 -3.87% 超 -3.05pp | 目標+15% 勝 22% 淨 -3.28% 超 -3.67pp | 目標+20% 勝 15% 淨 -4.32% 超 -3.84pp
+  止損  -12% | 目標+10% 勝 30% 淨 -4.08% 超 -2.47pp | 目標+15% 勝 22% 淨 -3.49% 超 -3.69pp | 目標+20% 勝 15% 淨 -4.75% 超 -4.14pp
+  止損  -15% | 目標+10% 勝 30% 淨 -4.40% 超 -2.09pp | 目標+15% 勝 22% 淨 -3.81% 超 -3.31pp | 目標+20% 勝 15% 淨 -5.11% 超 -3.71pp
+  裁決：無 Alpha——全部格位未勝過同參數隨機基準
+  ⚠️ 可用樣本 n=27（<30）：以上數字只能說方向，且必須做冷卻期敏感度檢查（加 --cooldown-sweep=5,10,20）。
+  分年：2023 n=9 勝— 均值-6.0% | 2024 n=12 勝17% 均值-2.9% | 2025 n=1 勝— 均值+15.3% | 2026 n=5 勝— 均值-6.6%
+  近三年（2024/2025/2026）合計 n=18 勝率 28% → ⚠️ <50%，整體數字被早年拉高
+```
+
+exit `0`。九格全負，而且每一格的超額 pp 都是負的：**不是「賠率不夠好」，是「這個訊號連什麼都不看都贏不了」。**
+
+### Step 5　冷卻期敏感度（協議對 n<30 強制要求）
+
+```bash
+python skill/event-study-odds/scripts/event_study.py 09696.json --events=WR --cooldown-sweep=5,10,20
+```
+
+```
+冷卻期敏感度 [WR]  止損 -9% / 目標 +12% / T+20
+  （目前只掃 -9% / +12% 這一格；要對齊報告九格請加 --stops=-9,-12,-15 --targets=10,15,20）
+  cooldown=  5  n= 43  勝27.9%  淨-3.36%
+  cooldown= 10  n= 27  勝 30%  淨-3.28%
+  cooldown= 20  n= 16  勝 38%  淨-0.73%
+```
+
+exit `0`。**注意這條掃的是 −9%/+12%，和 Step 4 的九格不是同一格**；要看「九格裡哪一格在 cd=20 轉正」，必須加 `--stops/-targets` 對齊。轉正的是 **−9%/+15%**（+0.11%／cd=20），超額仍為 −0.28pp。
+
+### Step 6　交付自檢（如果你要出報告）
+
+```bash
+python skill/event-study-odds/scripts/verify_report.py cases/dual-track-20261111/01164-09696-dual-track-20261111.html
+```
+
+```
+  [PASS] JS 語法 — 1 個內聯塊、27251 bytes，語法通過
+  [PASS] 重複鍵 — 未發現
+  [PASS] 指標一致性 — 未發現同指標多值
+  [INFO] 價位對照 — 下一站 20.25（低點方向，屬 09696）超出數列窗口（22.240–65.200），未自動驗證
+  [PASS] 價位對照 — 5 處均能在近 260 根低點中找到／算術相符
+  [PASS] 小樣本 — 未發現 n<10 仍給小數勝率
+  [PASS] 免責聲明 — 存在
+
+結果：全部通過（渲染層＋啟發式財務檢查），可交付
+```
+
+exit `0`。**沒有 node 的話這裡會是 `[SKIP] JS 語法` + exit 2**，那不是通過。
+
+```bash
+python skill/event-study-odds/scripts/selfcheck.py
+```
+
+```
+[PASS] docstring 的 import 都存在（9 項）
+[PASS] --help 皆 exit 0（5 項）
+[PASS] 無參數呼叫皆印說明（4 項）
+[PASS] 未知事件抛 ValueError 並附清單（1 項）
+[PASS] 基準列級別與 sample_level 一致（1 項）
+
+結果：全部通過
+```
+
+exit `0`。
+
+### Step 7　所以，能不能買？
+
+**不能。** 但理由不是「會跌」，而是**沒有可依賴的統計依據**：
+
+| 證據 | 數字 | 邊界 |
+|---|---|---|
+| 弱勢盤整（WR）事件 | n=29，T+20 可用 27，中位 −7.31%，勝率 22% | **C 級**：只能說方向，不得引用小數勝率 |
+| 近三年紅線 | n=18，勝率 28% | <50% → 整體數字被早年拉高，近期不成立 |
+| 九格賠率 | −5.11% ~ −3.28%，全負 | 「全負」只在 cd≤15 成立；cd=20/25 的 −9%/+15% 轉正至 +0.11%/+0.21%，但超額 −0.28pp/−0.18pp，仍未贏過基準 |
+| 隨機基準 | −1.94%，勝率 42.5% | 事件連「什麼都不看」都沒贏 |
+
+**這就是這套方法要你第一次就看到的東西：數字和它的有效邊界是成套出現的。** 任何只說「勝率 22%」卻不說「C 級、近三年紅燈」的結論，都是斷章取義。
+
+---
+
+## 三、輸出怎麼讀
+
+### 3.1 表格欄位
+
+| 欄位 | 意思 | 容易搞錯的地方 |
+|---|---|---|
+| **事件** | 觸發條件的名稱與定義 | `A`／`G`／`WR` 的定義見 [event-library.md](skill/event-study-odds/references/event-library.md) |
+| **n** | **可用樣本數**：事件發生次數中，往後還有完整 20 根 K 可觀察的數量 | 與「事件數」不是同一個數（見 3.2） |
+| **T+20 均值／中位** | 事件後第 20 個**交易日**的報酬 | 是交易日，不是日曆日；均值與中位差 >2pp 時以中位為主 |
+| **勝率** | 報酬 >0 的比例 | n<10 印 `—`；10–29 只印整數。**這不是 bug，是紀律** |
+| **MAE 中位** | 期間最大不利偏移（Maximum Adverse Excursion）的中位數 | 它回答「進場後通常要先承受多少回撤」，不是最終報酬 |
+| **級別** | A/B/C/D 樣本量等級 | 見 3.3 |
+| **超額 pp** | 該格淨期望 − 同參數隨機基準 | **≤0 代表這個訊號不優於「什麼都不看」** |
+| **未結率** | 20 日內既沒觸及止損、也沒觸及目標的比例 | 未結率高代表這個障礙組合在這段歷史上很少走完，期望值只是部分樣本的結果 |
+
+### 3.2 「事件數 29」和「可用 n 27」為什麼不同
+
+`build_events()` 產出 29 個事件；但最後 1–2 個事件發生在資料末端，往後不足 20 根 K，無法計算 T+20 報酬。`forward_stats()` 只統計能觀察完整窗口的 27 個。
+
+- **事件數** = 訊號觸發了幾次（去重後）
+- **可用 n** = 其中能用來算 T+20 的次數
+
+第一輪審查曾把這個差異誤報成 bug。看到兩個數字不一致，先看事件日期是否落在資料尾端。
+
+### 3.3 級別 A/B/C/D 與「可以說什麼」
+
+| 級別 | n | 可以說 | 禁止說 |
+|---|---|---|---|
+| **A** | ≥100 | 勝率、期望值、分年拆分 | 忽略時期偏差 |
+| **B** | 30–99 | 方向 + 粗略勝率（可帶小數） | 當成穩定規律 |
+| **C** | 10–29 | **只能說方向** | 引用小數點勝率、算精確期望 |
+| **D** | <10 | 只能當軼事 | **用勝率下任何結論** |
+
+工具的 `fmt_win()` 會直接執行這件事：n<10 印 `—`，10–29 只印整數。若你在報告裡看到 n=7 卻有 `62.5%`，那是作者手動覆寫了輸出，屬交付缺陷。
+
+### 3.4 超額 pp：整套方法的照妖鏡
+
+> **超額 ≤ 0 ＝ 這個訊號不優於「隨機在每 20 日進場一次」。**
+
+一支股票漲，可能只是板塊或大盤在漲。事件研究的價值不在「事件後平均 +3%」，而在「比不比得過不看訊號的 +2.9%」。所有路徑矩陣的每一格都已附同參數基準，不需要自己補算。
+
+### 3.5 勝率為什麼有時是 `—`、有時只有整數
+
+| 可用 n | 勝率顯示 | 原因 |
+|---|---|---|
+| <10 | `—` | 樣本不足以估計比例 |
+| 10–29 | 整數（`22%`） | 小數位會製造不存在的精度 |
+| ≥30 | 可帶一位小數（`42.5%`） | — |
+
+### 3.6 T+20 與 T+40 不是同一件事
+
+兩者都是**交易日**。同一組止損／目標在 T+20 與 T+40 的淨期望可以差一倍以上，甚至一正一負。引用時必須寫明期限——2026-11 就發生過把 T+20 的 +1.28% 當成 40 日期望的錯誤。
+
+### 3.7 exit code 通用表
+
+| 腳本 | 0 | 1 | 2 |
+|---|---|---|---|
+| `market_data.py` | 成功 | 無參數（印說明） | 參數錯誤、找不到網路、端點無資料 |
+| `indicators.py` | 成功 | 無參數 | 參數／檔案錯誤 |
+| `event_study.py` | 成功 | 無參數 | 參數／檔案錯誤 |
+| `verify_report.py` | 全部通過 | **有錯誤，不得交付** | **部分通過：有檢查被跳過或需人工確認** |
+| `selfcheck.py` | 全部通過 | 有檢查失敗 | 傳了不接受的參數 |
+
+**exit 2 不等於通過。** 它代表「有一項沒驗到」，必須看終端印出的「未執行的檢查」。
+
+---
+
+## 四、工作流
+
+| 步驟 | 做什麼 |
+|---|---|
+| 0 | 先分類標的狀態：**探底／破位下行／弱勢盤整／上升趨勢回調**（四種，見 [event-library.md §0](skill/event-study-odds/references/event-library.md)） |
+| 1 | 抓逐日 OHLC（港股分段抓取，美股走 Yahoo） |
+| 2 | 本地計算 MA/BOLL/RSI/KDJ/MACD/ATR |
+| 3 | 定義事件並去重（預設 10 日冷卻期） |
+| 4 | 前向報酬分布（均值／中位／P25／P75／MFE／MAE） |
+| 5 | 路徑模擬：止損與目標誰先觸及 |
+| 6 | 與隨機進場基準對照 |
+| 7 | 跨標的合併，對抗倖存者偏差 |
+| 8 | 分年勝率、破位序列、成交分布三項檢查 |
+| 9 | 倉位與成本換算 |
+| 10 | 報告與交付前自檢 |
+
+> Step 0 的四種狀態只在一處維護：[`references/event-library.md`](skill/event-study-odds/references/event-library.md)。
+> README 與 SKILL.md 都連過去，不再各抄一份——上一輪就是「一處改成四種、另一處還寫三種」。
+
+完整操作手冊見 [`skill/event-study-odds/SKILL.md`](skill/event-study-odds/SKILL.md)；名詞定義見 [`references/glossary.md`](skill/event-study-odds/references/glossary.md)。
+
+---
+
+## 五、常用指令
+
+```bash
+# 抓港股日 K（自動分段回溯）
+python skill/event-study-odds/scripts/market_data.py hk01164 --start 2015-01-01 --out 01164.json
+
+# 即時報價 + 52 週高低
+python skill/event-study-odds/scripts/market_data.py quote hk01164
+
+# 技術快照（最後一日的 MA/RSI/ATR）
+python skill/event-study-odds/scripts/indicators.py 01164.json
+
+# 多事件對照 + 隨機基準
+python skill/event-study-odds/scripts/event_study.py 01164.json --events=A,N,F,G,I,H
+
+# 指定九格（對齊報告）
+python skill/event-study-odds/scripts/event_study.py 09696.json --events=WR \
+  --stops=-9,-12,-15 --targets=10,15,20
+
+# 冷卻期敏感度（n<30 時必做）
+python skill/event-study-odds/scripts/event_study.py 09696.json --events=WR --cooldown-sweep=5,10,20
+
+# 分年勝率、破位序列、成交分布
+python skill/event-study-odds/scripts/event_study.py 01164.json --years
+python skill/event-study-odds/scripts/event_study.py 01164.json --breaks
+python skill/event-study-odds/scripts/event_study.py 01164.json --profile
+
+# 報告自檢與腳本自檢
+python skill/event-study-odds/scripts/verify_report.py cases/dual-track-20261111/01164-09696-dual-track-20261111.html
+python skill/event-study-odds/scripts/selfcheck.py
+```
+
+**沒有批量抓取入口。** 一次只能抓一個標的；要跑 13 個標的，請在外部迴圈逐一呼叫，並自己加延遲。
+
+---
+
+## 六、作為 agent skill 安裝（進階，可跳過）
+
+**不裝任何平台也能用**——上面的指令就是全部功能。只有想讓 agent 在對的時候自動載入這套流程，才需要下面這步。
+
+把 `skill/event-study-odds/` 整個目錄放進平台的 skills 目錄：
 
 | 平台 | 典型路徑 |
 |---|---|
 | WorkBuddy（使用者級） | `~/.workbuddy/skills/event-study-odds/` |
 | WorkBuddy（專案級） | `<專案>/.workbuddy/skills/event-study-odds/` |
 | Claude Code 等以 `SKILL.md` 為約定的工具 | 放到該工具自訂的 skills／plugins 目錄 |
+| Qoder | **未確認**：本機（2026-11-12）實測 `~/.qoder/` 下沒有 `skills/` 目錄，官方路徑待查。請依 Qoder 文件放置，不要照猜測填 |
 
-沒有 `~/.workbuddy` 這個目錄就表示你不是在 WorkBuddy 環境，請依平台文件放置；腳本本身只依賴 Python 標準庫，不需要安裝任何套件。
+放錯位置會怎樣：agent 讀不到 `SKILL.md`，**但腳本仍可手動執行**——功能不會消失，只是不會被自動召喚。
 
 ---
 
-## 能力範圍
+## 七、能力範圍
 
 ### 擅長（已用真實數據驗證）
 
@@ -66,7 +389,7 @@ cases/dual-track-20261111/  雙標的對照（01164 × 09696），1 份報告
 
 ---
 
-## 五條心法
+## 八、五條心法
 
 1. **概率只能從逐日數列算，不能從搜索摘要算。**
 2. **先問「這是不是比什麼都不看更好」。** 隨機進場基準是照妖鏡。
@@ -78,48 +401,7 @@ cases/dual-track-20261111/  雙標的對照（01164 × 09696），1 份報告
 
 ---
 
-## 工作流
-
-| 步驟 | 做什麼 |
-|---|---|
-| 0 | 先分類標的狀態：探底／破位下行／上升趨勢回調 |
-| 1 | 抓逐日 OHLC（港股分段抓取，美股走 Yahoo） |
-| 2 | 本地計算 MA/BOLL/RSI/KDJ/MACD/ATR |
-| 3 | 定義事件並去重（10 日冷卻期） |
-| 4 | 前向報酬分布（均值／中位／P25／P75／MFE／MAE） |
-| 5 | 路徑模擬：止損與目標誰先觸及 |
-| 6 | 與隨機進場基準對照 |
-| 7 | 跨標的合併，對抗倖存者偏差 |
-| 8 | 分年勝率、破位序列、成交分布三項檢查 |
-| 9 | 倉位與成本換算 |
-| 10 | 報告與交付前自檢 |
-
-完整操作手冊見 [`skill/event-study-odds/SKILL.md`](skill/event-study-odds/SKILL.md)。
-
----
-
-## 快速開始
-
-```bash
-# 抓港股日 K（自動分段回溯）
-python skill/event-study-odds/scripts/market_data.py hk01164 --start 2015-01-01 --out 01164.json
-
-# 多事件對照表 + 隨機基準
-python skill/event-study-odds/scripts/event_study.py 01164.json --events=A,N,F,G,I,H
-
-# 真假破位分類與序列分析
-python skill/event-study-odds/scripts/event_study.py 01164.json --breaks
-
-# 成交分布（上方套牢 / 下方真空）
-python skill/event-study-odds/scripts/event_study.py 01164.json --profile
-
-# HTML 報告交付前自檢
-python skill/event-study-odds/scripts/verify_report.py report.html
-```
-
----
-
-## 案例
+## 九、案例
 
 | 案例 | 問題 | 結論形態 |
 |---|---|---|
@@ -131,7 +413,7 @@ python skill/event-study-odds/scripts/verify_report.py report.html
 
 ---
 
-## 驗證記錄
+## 十、驗證記錄
 
 腳本不是紙上設計，是用真實數據校準過的：
 
@@ -147,7 +429,7 @@ python skill/event-study-odds/scripts/verify_report.py report.html
 同一份數據在 2026-09-11 重算 MA20=2.6627、MA60=2.5647 與舊值完全一致，證明價格序列沒有漂移，差異來自舊腳本的事件定義或參數。
 因此本 repo 已改用上表的可複現計數作為錨點，不再保留無法複現的數字。
 
-### 交付自檢狀態（2026-11-11 重跑）
+### 交付自檢狀態（2026-11-12 重跑）
 
 政策：**新報告**必須 exit 0 才交付；**舊報告**允許 exit 2，但要逐項寫明被跳過的檢查與人工確認結論。SKIP 不得改寫成 PASS。
 
@@ -161,6 +443,28 @@ python skill/event-study-odds/scripts/verify_report.py report.html
 | `09696-tianqi-lithium-bottom-check-20261012.html` | 2 | 價位對照 | **未通過**：價位只出現在圖表軸標籤（`N3` 字串陣列），正文無可解析宣稱 |
 
 三份 exit 2 的報告屬於舊版產出，數字未經自檢器驗證；引用時請回到原始資料核對。
+
+---
+
+## 十一、故障排除
+
+| 症狀 | 原因 | 怎麼辦 |
+|---|---|---|
+| `錯誤：找不到檔案 …` exit 2 | 第一個參數必須是日 K JSON | 先跑 `market_data.py … --out …` |
+| `無法辨識的標的代號 '01164'` exit 2 | 港股要 `hk` 前綴 + 4–5 位數字 | 用 `hk01164` |
+| `錯誤：抓取失敗：hk1164: 合併後無資料` exit 2 | 漏了前導零，端點查不到 | 用 5 位 `hk01164`；訊息已附下一步，不會再吐 traceback |
+| `[SKIP] JS 語法 — 找不到 node` → exit 2 | 沒裝 Node.js | 見 §一；裝完重開終端機 |
+| 中文變亂碼 / `UnicodeEncodeError` | Windows cp950 console | 腳本已自動切 UTF-8；若仍發生，設 `PYTHONIOENCODING=utf-8` |
+| `TLS 憑證驗證失敗` | 企業代理／憑證鏈／系統時間 | 先修憑證或時間；`--insecure` 是最後手段且會印警告，**勿用於實盤決策** |
+| 表格印 `—` 或整數勝率 | 樣本量紀律，不是 bug | 見 §三 3.3／3.5 |
+| `exit 2` 但看起來都 PASS | 有檢查被跳過 | **不得視為已驗證**，看終端「未執行的檢查」那行 |
+| `[INFO] 價位對照 — … 無法判定屬於哪一檔` | 雙標的報告中，該價位前 600 字沒有標的提及 | 在價位前寫明代號或公司名，重跑；或人工確認後在交付說明中記錄 |
+
+---
+
+## 十二、變更記錄
+
+每輪修了什麼、哪些數字已作廢、為什麼作廢 → [`CHANGELOG.md`](CHANGELOG.md)。
 
 ---
 

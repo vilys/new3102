@@ -16,6 +16,8 @@ verify_report.py — HTML 報告交付前自檢。
     5. 價位宣稱是否對得上原始 K 線：
        歷史低點型（失效線/支撐/前低）比低點、目標型（壓力/目標）比高點、
        計算型（止損）驗算術；落在數列窗口外的宣稱列 INFO 不判錯
+       **雙標的報告會先判定這條價位屬於哪一檔，只比對該檔的數列**；
+       無法歸屬時列 INFO 並使整體 exit 2，不再把兩檔的價位混成一池
     6. n<10 卻仍印出小數勝率
     7. 免責聲明是否存在
 
@@ -294,7 +296,8 @@ def _visible(html):
     out = re.sub(r"<!--.*?-->", " ", out, flags=re.S)
     # 只剝「長得像 HTML 標籤」的片段（以字母或 / 開頭）；
     # 否則內文的 `RSI6<30 且 close<MA60` 會被當成標籤開頭，吞掉整段文字。
-    out = re.sub(r"</?[a-zA-Z][^>]*>", " ", out)
+    # `[^<>]*` 而非 `[^>]*`：避免 `<MA60 時</p>` 被一路吃到 `</p>` 的 `>`。
+    out = re.sub(r"</?[a-zA-Z][^<>]*>", " ", out)
     return out
 
 
@@ -321,6 +324,80 @@ def _price_series(arrays, want="low"):
                 tail = rows[-260:]
                 out.append((f"{name}[{idx}]", [r[idx] for r in tail]))
     return out
+
+
+# ---------------------------------------------------------------- 標的歸屬
+#
+# 雙標的報告（例如同時寫 01164 與 09696）如果不分檔，兩檔的低點會併成一個池：
+# 窗口變成 1.865–65.200，於是把 01164 的 1.865 寫成 09696 的支撐也能通過。
+# 這裡把每條價位宣稱歸給「前面最近一次標的提及」，只比對該檔的數列。
+
+_MAX_ATTRIB_DIST = 600   # 宣稱與最近一次標的提及的最大字元距離
+
+
+def _series_symbol(label):
+    """從數列名推回標的代號：`L1164`→01164、`M101164`→01164、`K1164[2]`→01164。
+
+    去掉 `[n]` 後取結尾 4–6 位數字：4 位補前導零、6 位取末 5 位
+    （`M101164` = MA10 + 1164）。取不出數字的（`LO`、`low`、`LCCJ`）回 None。
+    """
+    label = re.sub(r"\[\d+\]$", "", label)
+    m = re.search(r"(\d{4,6})$", label)
+    if not m:
+        return None
+    d = m.group(1)
+    if len(d) == 5:
+        return d
+    if len(d) == 4:
+        return "0" + d
+    return d[-5:]
+
+
+def _symbol_index(text, arrays):
+    """建立 標的→數列 的索引，以及正文中的代號／公司別名。
+
+    只採信「正文真的出現過」的代號：數列名可能是 `M101164` 這種混合體，
+    若把推導出的每個代號都當真，單標的報告會被誤切成多檔。
+    """
+    low_series = _price_series(arrays, "low")
+    high_series = _price_series(arrays, "high")
+    by_symbol = {}
+    for kind, series in (("low", low_series), ("high", high_series)):
+        for label, vals in series:
+            code = _series_symbol(label)
+            if code:
+                by_symbol.setdefault(code, {}).setdefault(kind, []).append((label, vals))
+    codes = sorted(c for c in by_symbol if text.count(c) > 0)
+
+    aliases = {}
+    for code in codes:
+        # 01164（中廣核礦業） / 01164 (CGN Mining)
+        for m in re.finditer(re.escape(code) + r"\s*[（(]([^）)\n]{2,16})[）)]", text):
+            nm = m.group(1).strip()
+            if re.fullmatch(r"[\u4e00-\u9fffA-Za-z][\u4e00-\u9fffA-Za-z .&·\-]{1,15}", nm):
+                aliases[nm] = code
+        # 中廣核礦業（01164）
+        for m in re.finditer(r"([\u4e00-\u9fff]{2,10})\s*[（(]\s*" + re.escape(code) + r"\s*[）)]", text):
+            aliases[m.group(1)] = code
+    return codes, aliases, by_symbol, low_series, high_series
+
+
+def _symbol_mentions(text, codes, aliases):
+    """回傳 [(start, end, code)]，依位置排序。"""
+    words = {code: code for code in codes}
+    words.update({a: c for a, c in aliases.items() if a not in words})
+    if not words:
+        return []
+    rx = re.compile("|".join(re.escape(w) for w in sorted(words, key=len, reverse=True)))
+    return [(m.start(), m.end(), words[m.group(0)]) for m in rx.finditer(text)]
+
+
+def _attribute(pos, mentions):
+    """把宣稱歸給前面最近一次標的提及；無提及或超出距離 → None。"""
+    prev = [m for m in mentions if m[1] <= pos]
+    if not prev or pos - prev[-1][1] > _MAX_ATTRIB_DIST:
+        return None
+    return prev[-1][2]
 
 
 def _verify_stop_arithmetic(html, m, price):
@@ -387,28 +464,41 @@ def check_metric_conflict(html):
 
 
 def check_price_claims(html, arrays):
-    """把報告裡的價位宣稱對回原始 K 線。
+    """把報告裡的價位宣稱對回原始 K 線，並先判定它屬於哪一檔標的。
 
     分三類處理，避免把「合理的計算值」誤判成錯誤：
-      歷史低點型（失效線/支撐/前低/觀察線）→ 必須命中低點序列，否則 FAIL
-      目標型（壓力/目標/上看）             → 只對高點序列做提示，不判 FAIL
+      歷史低點型（失效線/支撐/前低/觀察線）→ 必須命中**該檔**低點序列，否則 FAIL
+      目標型（壓力/目標/上看）             → 只對**該檔**高點序列做提示，不判 FAIL
       「下一站」                            → 由上下文決定比低點還是高點
       計算型（止損）                       → 驗算術；算不出來只列 INFO
 
-    價位若落在數列窗口之外（例如引用 2025-04 的低點，而數列只有近 105 根），
-    無法驗證 → 列 INFO，不當成錯誤。
+    歸屬規則：取宣稱前方最近一次標的提及（代號或學到的公司別名），
+    距離上限 `_MAX_ATTRIB_DIST`。找不到歸屬就**不猜**——列 INFO 並讓整體 exit 2。
+    這一條是為了擋「把 01164 的 1.865 寫成 09696 的支撐」這種跨檔複製錯誤：
+    舊版把兩檔低點併成一池，窗口 1.865–65.200，這種錯會完全放行。
 
-    回傳 (problems, checked, skipped_reason, infos)
+    回傳 (problems, checked, skipped_reason, infos, unverified)
     """
     text = _visible(html)
-    low_series = _price_series(arrays, "low")
-    high_series = _price_series(arrays, "high")
+    codes, aliases, by_symbol, low_series, high_series = _symbol_index(text, arrays)
     if not low_series and not high_series:
         return [], 0, ("找不到低點／高點數列（需 var/window 形式且含 L/LO/low/H/high，"
-                       "或巢狀 K 陣列）"), []
+                       "或巢狀 K 陣列）"), [], []
 
-    problems, infos = [], []
+    mentions = _symbol_mentions(text, codes, aliases)
+    single = len(codes) <= 1
+
+    problems, infos, unverified = [], [], []
     checked = 0
+
+    def pool(code, kind):
+        """取該檔的數列；單標的報告允許未標代號的數列（`LO`、`low`）。"""
+        got = by_symbol.get(code, {}).get(kind, [])
+        if got:
+            return got
+        if single:
+            return low_series if kind == "low" else high_series
+        return []
 
     def nearest(series, price):
         best = None
@@ -424,6 +514,45 @@ def check_price_claims(html, arrays):
         hi = max(max(v) for _, v in series)
         return lo, hi
 
+    def other_symbol_hit(code, kind, price):
+        """這個價位是否其實是另一檔的（低／高）點？有的話回 (代號, 來源, 值)。"""
+        if code == "本標的":      # 單標的報告沒有「另一檔」可比
+            return None
+        for oc, kinds in by_symbol.items():
+            if oc == code:
+                continue
+            for label, vals in kinds.get(kind, []):
+                for x in vals:
+                    if abs(x - price) <= max(0.0015 * price, 0.005):
+                        return oc, label, x
+        return None
+
+    def resolve(pos, kind, label, price):
+        """回傳 (code, series)；無法歸屬或該檔無數列時記入 unverified 並回 None。"""
+        code = _attribute(pos, mentions)
+        if code is None and single:
+            # 單標的報告常見「正文只寫公司名、數列名才帶代號」；
+            # 這時不存在混淆風險，直接用全部數列，不必強求代號。
+            series = low_series if kind == "low" else high_series
+            if series:
+                return "本標的", series
+        if code is None:
+            unverified.append(
+                f"{label} {price} 無法判定屬於哪一檔"
+                f"（前 {_MAX_ATTRIB_DIST} 字內無標的提及），未自動驗證")
+            return None
+        series = pool(code, kind)
+        if not series:
+            unverified.append(
+                f"{label} {price} 屬 {code}，但報告內沒有 {code} 的"
+                f"{'低' if kind == 'low' else '高'}點數列，未自動驗證")
+            return None
+        return code, series
+
+    def who(code):
+        """訊息用的標的稱呼：「 01164 的」／「本標的」——避免出現「本標的 的」。"""
+        return "本標的" if code == "本標的" else f" {code} 的"
+
     # ---- 歷史低點型：這裡才是真正的「錯價位」檢查
     if low_series:
         for m in _LOW_CLAIM_RE.finditer(text):
@@ -432,24 +561,39 @@ def check_price_claims(html, arrays):
             label, price = m.group(1), float(m.group(2))
             if price <= 0:
                 continue
+            got = resolve(m.start(), "low", label, price)
+            if not got:
+                continue
+            code, series = got
             checked += 1
-            lo, hi = window(low_series)
-            best = nearest(low_series, price)
-            if not (lo * 0.995 <= price <= hi * 1.005):
-                # 低於窗口最低點、但差距在 5% 以內：不像是「更早週期的低點」
-                # （那種通常明顯更低，例如 2025-04 的 20.25 vs 近 105 根最低 22.24），
-                # 更像是寫錯、或把預測值寫成了歷史支撐 → 判錯，要求標明日期。
-                if lo * 0.95 <= price < lo * 0.995:
+            lo, hi = window(series)
+            best = nearest(series, price)
+            if lo * 0.995 <= price <= hi * 1.005:
+                if best and best[0] > 0.0015 * price:
                     problems.append(
-                        f"{label} {price} 低於近 260 根最低點 {lo:.3f}（差 {lo - price:.3f}），"
-                        f"且未對應任何低點；若引用更早的低點請標明日期")
-                else:
-                    infos.append(f"{label} {price} 超出數列窗口（{lo:.3f}–{hi:.3f}），"
-                                 f"無法驗證（可能引用更早的低點）")
-            elif best and best[0] > 0.0015 * price:
+                        f"{label} {price} 在{who(code)}近 260 根低點中找不到對應值"
+                        f"（最接近 {best[1]:.3f}，差 {best[0]:.3f}，來源 {best[2]}）")
+                continue
+            # 窗口外：先看它是不是另一檔的價位——跨標的複製正是雙標的報告最典型的錯
+            hit = other_symbol_hit(code, "low", price)
+            if hit:
                 problems.append(
-                    f"{label} {price} 在近 260 根低點中找不到對應值"
-                    f"（最接近 {best[1]:.3f}，差 {best[0]:.3f}，來源 {best[2]}）")
+                    f"{label} {price} 寫在 {code} 的段落，但這是 {hit[0]} 的低點"
+                    f"（{hit[2]:.3f}，來源 {hit[1]}）——疑似跨標的錯置")
+            elif lo * 0.95 <= price < lo * 0.995:
+                # 低於窗口最低點、但差距在 5% 以內：不像是「更早週期的低點」
+                # （那種通常明顯更低），更像是寫錯、或把預測值寫成了歷史支撐。
+                problems.append(
+                    f"{label} {price} 低於{who(code)}近 260 根最低點 {lo:.3f}"
+                    f"（差 {lo - price:.3f}），且未對應任何低點；若引用更早的低點請標明日期")
+            elif price < lo * 0.5 or price > hi * 2:
+                # 與該檔的價格量級差一個量級：23 元的股票不會有 2.21 的支撐。
+                problems.append(
+                    f"{label} {price} 與{who(code)}價格量級不符"
+                    f"（近 260 根 {lo:.3f}–{hi:.3f}）；若確為更早的低點請標明日期")
+            else:
+                infos.append(f"{label} {price} 超出{who(code)}數列窗口（{lo:.3f}–{hi:.3f}），"
+                             f"無法驗證（可能引用更早的低點）")
 
     # ---- 目標型：只提示，不判 FAIL（可能是分析師目標價或推導值）
     if high_series:
@@ -459,13 +603,17 @@ def check_price_claims(html, arrays):
             label, price = m.group(1), float(m.group(2))
             if price <= 0:
                 continue
-            lo, hi = window(high_series)
-            best = nearest(high_series, price)
+            got = resolve(m.start(), "high", label, price)
+            if not got:
+                continue
+            code, series = got
+            lo, hi = window(series)
+            best = nearest(series, price)
             if not (lo * 0.995 <= price <= hi * 1.005):
-                infos.append(f"{label} {price} 超出高點窗口（{lo:.3f}–{hi:.3f}），"
+                infos.append(f"{label} {price} 超出{who(code)}高點窗口（{lo:.3f}–{hi:.3f}），"
                              f"未自動驗證（分析師目標價或更早期高點屬正常）")
             elif best and best[0] > 0.0015 * price:
-                infos.append(f"{label} {price} 未落在近 260 根高點上"
+                infos.append(f"{label} {price} 未落在{who(code)}近 260 根高點上"
                              f"（最接近 {best[1]:.3f}，差 {best[0]:.3f}，來源 {best[2]}）")
 
     # ---- 「下一站」：方向由上下文決定，不是一律當成上方目標
@@ -477,21 +625,25 @@ def check_price_claims(html, arrays):
         ctx = text[max(0, m.start() - 40):m.start()]
         d = max((ctx.rfind(w) for w in _DOWN_CTX), default=-1)
         u = max((ctx.rfind(w) for w in _UP_CTX), default=-1)
-        checked += 1
-        target, kind = (low_series, "低點") if d > u else (high_series, "高點")
-        if not target:
-            infos.append(f"下一站 {price} 屬{kind}方向，但報告內無{kind}數列可比對")
+        kind, kind_cn = ("low", "低點") if d > u else ("high", "高點")
+        if not (low_series if kind == "low" else high_series):
+            infos.append(f"下一站 {price} 屬{kind_cn}方向，但報告內無{kind_cn}數列可比對")
             continue
-        lo, hi = window(target)
-        best = nearest(target, price)
+        got = resolve(m.start(), kind, "下一站", price)
+        if not got:
+            continue
+        code, series = got
+        checked += 1
+        lo, hi = window(series)
+        best = nearest(series, price)
         if not (lo * 0.995 <= price <= hi * 1.005):
-            infos.append(f"下一站 {price}（{kind}方向）超出數列窗口（{lo:.3f}–{hi:.3f}），"
-                         f"未自動驗證")
+            infos.append(f"下一站 {price}（{kind_cn}方向，屬 {code}）超出{who(code)}數列窗口"
+                         f"（{lo:.3f}–{hi:.3f}），未自動驗證")
         elif best and best[0] > 0.0015 * price:
-            infos.append(f"下一站 {price}（{kind}方向）未落在近 260 根{kind}上"
+            infos.append(f"下一站 {price}（{kind_cn}方向，屬 {code}）未落在{who(code)}近 260 根{kind_cn}上"
                          f"（最接近 {best[1]:.3f}，差 {best[0]:.3f}，來源 {best[2]}）")
 
-    # ---- 計算型：止損價不是歷史低點，改驗算術
+    # ---- 計算型：止損價不是歷史低點，改驗算術（與標的無關）
     for m in _STOP_CLAIM_RE.finditer(text):
         price = float(m.group(2))
         if price <= 0:
@@ -503,9 +655,9 @@ def check_price_claims(html, arrays):
         elif status == "unknown":
             infos.append(f"{m.group(1)} {price} 屬計算型，{detail}（不計入錯誤）")
 
-    if not checked:
-        return [], 0, "報告內找不到失效線/支撐/前低/止損的具體價位", infos
-    return problems, checked, None, infos
+    if not checked and not unverified:
+        return [], 0, "報告內找不到失效線/支撐/前低/止損的具體價位", infos, []
+    return problems, checked, None, infos, unverified
 
 
 def check_small_sample(html):
@@ -598,9 +750,13 @@ def main(argv):
     else:
         print("  [PASS] 指標一致性 — 未發現同指標多值")
 
-    problems, checked, reason, infos = check_price_claims(html, arrays)
+    problems, checked, reason, infos, unverified = check_price_claims(html, arrays)
     for info in infos:
         print(f"  [INFO] 價位對照 — {info}")
+    for u in unverified:
+        print(f"  [INFO] 價位對照 — {u}")
+    if unverified:
+        skipped.append(f"價位歸屬不明（{len(unverified)} 處）")
     if reason:
         skipped.append("價位對照")
         print(f"  [SKIP] 價位對照 — {reason}")
@@ -610,7 +766,11 @@ def main(argv):
         for p in problems:
             print(f"          {p}")
     else:
-        print(f"  [PASS] 價位對照 — {checked} 處均能在近 260 根低點中找到／算術相符")
+        if unverified:
+            print(f"  [INFO] 價位對照 — 已自動驗證 {checked} 處；"
+                  f"另 {len(unverified)} 處無法歸屬（未計入通過）")
+        else:
+            print(f"  [PASS] 價位對照 — {checked} 處均能在近 260 根低點中找到／算術相符")
 
     small = check_small_sample(html)
     if small:

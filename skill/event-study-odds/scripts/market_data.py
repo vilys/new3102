@@ -26,8 +26,10 @@ market_data.py — 日K抓取、合併、盤中補K、報價。
 import json
 import os
 import re
+import socket
 import ssl
 import sys
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
@@ -303,6 +305,30 @@ def _validate_symbol(sym):
             f"  美股  US:CCJ（US: + Yahoo 代號）")
 
 
+def _fetch_error_message(exc):
+    """把抓取例外翻成「原因 + 下一步」，不要在 CLI 露裸 traceback。
+
+    區分四類：端點無資料／限流（FetchError）、TLS 憑證、逾時、一般連線失敗。
+    TLS 那條**不建議直接關驗證**——--insecure 只作最後手段並會印警告。
+    """
+    if isinstance(exc, FetchError):
+        return (f"抓取失敗：{exc}\n"
+                f"  下一步：確認代號是否為 5 位含前導零（港股例：hk01164）；\n"
+                f"  若代號正確，多半是接口限流或當日無成交——請隔幾分鐘再試，不要連續重試。")
+    reason = getattr(exc, "reason", None) or exc
+    if isinstance(reason, ssl.SSLError) or isinstance(exc, ssl.SSLError):
+        return ("TLS 憑證驗證失敗：端點憑證無法通過驗證（常見於企業代理、憑證鏈不完整或系統時間錯誤）。\n"
+                "  下一步：先修正系統時間或匯入企業根憑證。\n"
+                "  ⚠️ --insecure 只作最後手段：它會關閉中間人防護，資料可能被替換，勿用於實盤決策。")
+    if isinstance(reason, (socket.timeout, TimeoutError)) or isinstance(exc, (socket.timeout, TimeoutError)):
+        return ("網路逾時：端點在時限內未回應。\n"
+                "  下一步：確認網路後重試；若疑似接口限流，請隔幾分鐘再試，不要連續重試。")
+    if isinstance(exc, urllib.error.URLError):
+        return (f"網路連線失敗：{reason}\n"
+                "  下一步：確認網路與代理設定（企業網路可能需要設定 HTTPS_PROXY）。")
+    return f"抓取失敗：{exc}\n  下一步：確認代號與網路後重試。"
+
+
 def _cli(argv):
     setup_console()
     if not argv:
@@ -360,10 +386,22 @@ def _cli(argv):
         else:
             i += 1
 
-    if cmd.startswith("US:") or cmd.startswith("us:"):
-        rows = fetch_us(cmd.split(":", 1)[1].upper(), rng)
-    else:
-        rows = fetch_hk(cmd, start, verbose=verbose)
+    # 原本 fetch 這一段沒有保護：hk1164（漏前導零）通過格式驗證後直接裸 traceback。
+    # 抓取失敗是預期內的情境（限流／下市／斷網），一律友善訊息 + exit 2。
+    try:
+        if cmd.startswith("US:") or cmd.startswith("us:"):
+            rows = fetch_us(cmd.split(":", 1)[1].upper(), rng)
+        else:
+            rows = fetch_hk(cmd, start, verbose=verbose)
+    except (FetchError, urllib.error.URLError, ssl.SSLError,
+            socket.timeout, TimeoutError) as exc:
+        print(f"錯誤：{_fetch_error_message(exc)}", file=sys.stderr)
+        return 2
+
+    if not rows:
+        print(f"錯誤：{cmd} 抓不到任何日 K。\n"
+              f"  下一步：確認代號與日期範圍後重試。", file=sys.stderr)
+        return 2
 
     print(f"# {cmd}  n={len(rows)}  {rows[0][0]} → {rows[-1][0]}", file=sys.stderr)
     payload = json.dumps(rows)

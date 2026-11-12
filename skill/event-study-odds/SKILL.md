@@ -82,16 +82,11 @@ agent_created: true
 
 ### Step 0：先分類標的狀態（決定用哪套事件）
 
-**四種狀態，四種打法。跳過這步會得到相反結論。**
+**四種狀態：探底／磨底、破位下行、弱勢盤整、上升趨勢中的回調。** 跳過這步會得到相反結論。
 
-| 狀態 | 特徵 | 主用事件 |
-|---|---|---|
-| **探底/磨底** | 在前低附近反覆測試，收盤未持續創新低 | G 假破位、N 貼近前低 |
-| **破位下行** | 收盤持續創 250 日新低，均線單調下滑 | F 真破位、S 極度超賣（多為反面樣本） |
-| **弱勢盤整** | 距 250 日低 5–15%，跌不深也彈不動 | WR（弱勢盤整） |
-| **上升趨勢中的回調** | 價格在 MA60 之上，回撤 <20% | A/B 超賣回踩 |
-
-快速判斷指令見 Step 1 後的 `--breaks`。
+每種狀態的特徵與對應事件（G/N、F/S、WR、A/B）只在
+[`references/event-library.md`](references/event-library.md) 的「零、標的狀態分類」維護——
+這裡不重複列表，避免兩處措辭分叉（2026-11 就發生過一處改成四種、另一處還寫三種）。
 
 ### Step 1：抓逐日 OHLC
 
@@ -224,12 +219,16 @@ python scripts/verify_report.py report.html
 
 必須看到 `全部通過`（exit 0）。**若顯示「部分通過，需人工確認」（exit 2），代表有檢查被跳過或觸發警告**（例如找不到 node、報告未用 `var/window` 數列、價位宣稱落在數列窗口之外），不得當作已驗證。
 
+⚠️ **`verify_report.py` 需要 Node.js**（用 `node --check` 校驗報告的內聯 JS）。沒有 node 時該項會 `[SKIP]`、整體 exit 2——這不是通過。四支分析腳本不需要 node。
+
 exit 2 的處理政策（二選一，不可默默放行）：
 
 - **新報告**：必須 exit 0 才交付。有 SKIP 就補資料（加 `var/window` 數列）或補 node，不要靠人工判斷硬過。
 - **舊報告**：可交付 exit 2，但必須逐項寫下 SKIP 原因與人工確認結果（例如「價位對照 SKIP：該報告的價位只出現在圖表軸標籤，正文無可解析宣稱」），並在對應 README 標明「未通過自檢的項目」。**禁止把 SKIP 改寫成 PASS**。
 
-`[INFO]` 不影響 exit code：它代表「這條宣稱無法用現有數列自動驗證」（例如引用比數列窗口更早的低點、分析師目標價、缺少進場價的止損），已印在終端，需人工看一眼。
+`[INFO]` 一般不影響 exit code：它代表「這條宣稱無法用現有數列自動驗證」（例如引用比數列窗口更早的低點、分析師目標價、缺少進場價的止損），已印在終端，需人工看一眼。
+
+**例外：價位歸屬不明。** 雙標的報告中若某條價位前方 600 字內沒有任何標的提及，自檢器不猜它是哪一檔，列 INFO 並計入 **exit 2**（未執行的檢查：「價位歸屬不明」）。正確做法是在價位前寫明代號或公司名，不是手動放行。
 
 自檢器現在分兩層：
 
@@ -237,6 +236,7 @@ exit 2 的處理政策（二選一，不可默默放行）：
 - 財務啟發式：
   - 同一指標是否出現兩個不一致的值（**只抓「多值衝突」，抓不到「單一但錯誤」的值**）
   - 價位宣稱分類比對：歷史低點型（失效線/支撐/前低）比**低點**序列、目標型（壓力/目標/上看）比**高點**序列（只提示）、「下一站」由上下文決定方向、計算型（止損）驗**算術**
+  - **雙標的先判歸屬**：每條價位歸給前方最近的標的提及，只比對該檔數列；跨檔錯置或量級不符判 FAIL，無法歸屬列 INFO 並使 exit 2
   - 價位可用整數（「失效線 20」），但日期（`10/23`）、參數（`cooldown=10`）、`T+20`、均線期數、5 位以上代號會被排除
   - n<10 是否仍給小數勝率、免責聲明是否存在
 
@@ -245,7 +245,7 @@ exit 2 的處理政策（二選一，不可默默放行）：
 **腳本自身的回歸**（改完代碼、發版前跑）：
 
 ```bash
-python scripts/selfcheck.py     # docstring 的 import、--help、無參數、未知事件
+python scripts/selfcheck.py     # docstring import、--help、無參數、未知事件、基準列級別
 ```
 
 ---
@@ -275,7 +275,8 @@ python scripts/selfcheck.py     # docstring 的 import、--help、無參數、�
 | `scripts/market_data.py` | 港股分段抓取、Yahoo 美股、報價、盤中補 K |
 | `scripts/indicators.py` | MA/BOLL/RSI/KDJ/MACD/ATR/prior_low，口徑固定 |
 | `scripts/event_study.py` | 事件、去重、前向分布、路徑矩陣、隨機基準、破位分類、序列、分年、成交分布 |
-| `scripts/verify_report.py` | HTML 交付前自檢（渲染層＋財務啟發式） |
+| `scripts/verify_report.py` | HTML 交付前自檢（渲染層＋財務啟發式；**需要 Node.js**） |
+| `scripts/selfcheck.py` | 腳本自身回歸：docstring import、`--help`、無參數、未知事件、基準列級別 |
 
 常用指令：
 
@@ -318,6 +319,7 @@ python scripts/market_data.py hk01164 --insecure
 | `references/event-library.md` | 定義新事件、懷疑 `prior_low` 有 bug、要查板塊實測數字 |
 | `references/statistics-protocol.md` | 算期望值、做合併樣本、換算倉位、判斷樣本量夠不夠 |
 | `references/reporting.md` | 要出 HTML 報告、寫對話摘要、寫免責聲明 |
+| `references/glossary.md` | 不確定 `cooldown`／`未結`／`超額`／`MAE` 是什麼意思，或要解釋給別人聽 |
 | `references/case-notes.md` | 想看真實案例、想知道哪裡最容易誤判 |
 
 ---
