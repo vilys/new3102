@@ -8,8 +8,15 @@ indicators.py — 本地技術指標。口徑固定，避免各家平台數值�
     ATR14 以百分比表示 = ATR / close * 100
 
 全部函式回傳與輸入等長的 list，前段不足期數處為 None。
+
+CLI:
+    python indicators.py 01164.json            # 印最後一根的完整指標
+    python indicators.py 01164.json 2920       # 指定索引
+    python indicators.py 01164.json 2026-10-23 # 指定日期
 """
 
+import json
+import os
 import sys
 
 
@@ -197,8 +204,49 @@ def summary_at(rows, idx=None):
     return I
 
 
-if __name__ == "__main__":
-    import json
+def _cli(argv):
     setup_console()
-    rows = json.load(open(sys.argv[1], encoding="utf-8"))
-    summary_at(rows, int(sys.argv[2]) if len(sys.argv) > 2 else None)
+    if not argv:
+        print(__doc__)
+        return 1
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
+    if not os.path.isfile(argv[0]):
+        print(f"錯誤：找不到檔案 {argv[0]}\n"
+              f"第一個參數必須是 market_data.py 產出的日 K JSON。先抓資料：\n"
+              f"  python market_data.py hk01164 --start 2015-01-01 --out 01164.json",
+              file=sys.stderr)
+        return 2
+    try:
+        with open(argv[0], encoding="utf-8") as fh:
+            rows = json.load(fh)
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        print(f"錯誤：{argv[0]} 不是有效的日 K JSON（{exc}）", file=sys.stderr)
+        return 2
+    if not rows:
+        print(f"錯誤：{argv[0]} 沒有任何 K 線", file=sys.stderr)
+        return 2
+
+    idx = None
+    if len(argv) > 1:
+        spec = argv[1]
+        if spec.lstrip("-").isdigit():
+            idx = int(spec)
+            if not -len(rows) <= idx < len(rows):
+                print(f"錯誤：索引 {idx} 超出範圍（共 {len(rows)} 根，可用 0–{len(rows)-1}）",
+                      file=sys.stderr)
+                return 2
+        else:
+            hits = [j for j, r in enumerate(rows) if r[0] == spec]
+            if not hits:
+                print(f"錯誤：找不到日期 {spec}（資料範圍 {rows[0][0]} → {rows[-1][0]}）",
+                      file=sys.stderr)
+                return 2
+            idx = hits[0]
+    summary_at(rows, idx)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_cli(sys.argv[1:]))

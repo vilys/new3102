@@ -91,7 +91,7 @@ footer p{margin-bottom:8px}
   <div class="card">
     <span class="tag green">09696 · 弱勢盤整</span>
     <p style="margin:12px 0 10px;font-size:14px;font-weight:700">同業在反彈，它原地踏步</p>
-    <p style="font-size:13px;color:#4b5563">10/29 以來 PLS +10.2%、LTR +11.3%、CXO +19.0%，而 09696 <b>0.0%</b>。碳酸鋰 11/4 才創年內新低 86,360，至今仍在 8.7 萬附近。<b>當前弱勢盤整狀態的 T+20 中位 −6.74%、勝率 26.7%，是本次統計中最差的一組。</b></p>
+    <p style="font-size:13px;color:#4b5563">10/29 以來 PLS +10.2%、LTR +11.3%、CXO +19.0%，而 09696 <b>0.0%</b>。碳酸鋰 11/4 才創年內新低 86,360，至今仍在 8.7 萬附近。<b>當前弱勢盤整（WR）狀態的 T+20 中位 −7.31%、勝率 22%，是本次統計中最差的一組。</b></p>
   </div>
 </div>
 
@@ -164,7 +164,7 @@ footer p{margin-bottom:8px}
     <tr><td>01164 廣義超賣（RSI6&lt;30）</td><td>71</td><td>+1.80%</td><td>0.00%</td><td class="down">47.9%</td><td>−9.6%</td></tr>
     <tr><td>01164 假破位</td><td>8</td><td>+4.57%</td><td>+5.56%</td><td>62.5%</td><td>−10.4%</td></tr>
     <tr class="base"><td>01164 隨機基準（每 20 日進場）</td><td>133</td><td>+2.86%</td><td>0.00%</td><td>49.6%</td><td>—</td></tr>
-    <tr class="hl"><td><b>09696</b> 距低 5–15% 弱勢盤整</td><td>16</td><td>−2.06%</td><td class="down"><b>−6.74%</b></td><td class="down"><b>26.7%</b></td><td>−10.2%</td></tr>
+    <tr class="hl"><td><b>09696</b> 距低 5–15% 弱勢盤整（WR）</td><td>29</td><td>−3.94%</td><td class="down"><b>−7.31%</b></td><td class="down"><b>22%</b></td><td>−10.8%</td></tr>
     <tr><td>09696 廣義超賣（RSI6&lt;30）</td><td>27</td><td>−3.97%</td><td class="down">−7.79%</td><td class="down">25.9%</td><td>−14.7%</td></tr>
     <tr><td>09696 假破位</td><td>13</td><td>−1.37%</td><td class="down">−4.80%</td><td class="down">23.1%</td><td>−7.6%</td></tr>
     <tr class="base"><td>09696 隨機基準（每 20 日進場）</td><td>40</td><td>−0.29%</td><td>−1.94%</td><td>42.5%</td><td>—</td></tr>
@@ -177,11 +177,11 @@ footer p{margin-bottom:8px}
   <b>三個必須說清楚的判斷：</b><br>
   ① <b>01164 的 M60 事件（n=41）低於隨機基準</b>（中位 −1.61% vs 0.00%，勝率 42.5% vs 49.6%）。這是「反彈已到壓力、短線不值得追」的量化依據，不是主觀感覺。<br>
   ② <b>01164 的假破位 n=8，低於 10 的門檻</b>，只能說「方向偏正」，不能拿 62.5% 當勝率用。<br>
-  ③ <b>09696 的 WR 事件 n=16，勉強夠看，但三個事件方向一致偏空</b>——弱勢盤整 −6.74%、超賣 −7.79%、假破位 −4.80%，沒有任何一組支持進場。
+  ③ <b>09696 的三個事件方向一致偏空</b>——弱勢盤整（WR）n=29、中位 −7.31%、勝率 22%；超賣 n=27、−7.79%、25.9%；假破位 n=13、−4.80%、23.1%。沒有任何一組支持進場。
 </div>
 
 <h2>04 &nbsp;賠率：止損放寬也救不回來<span class="en">PATH &amp; EXPECTANCY</span></h2>
-<p class="lede">路徑模擬以各事件自己的收盤價為基準、套百分比障礙、同日雙觸判止損，並扣 0.75% 來回成本。</p>
+<p class="lede">路徑模擬以各事件自己的收盤價為基準、套百分比障礙、同日雙觸判止損，並扣 0.75% 來回成本。下表九格全部為 <b>T+20</b>（20 個交易日內誰先觸及）口徑，與前文的 T+40 前向報酬不是同一件事。</p>
 
 <div class="card">
   <div id="chartPath" class="chart" style="height:380px"></div>
@@ -189,23 +189,23 @@ footer p{margin-bottom:8px}
 
 <div class="card" style="padding:0;overflow:hidden">
 <table>
-  <thead><tr><th>事件 · 止損</th><th>目標 +10%</th><th>目標 +15%</th><th>目標 +20%</th></tr></thead>
+  <thead><tr><th>事件 · 止損（T+20）</th><th>目標 +10%</th><th>目標 +15%</th><th>目標 +20%</th></tr></thead>
   <tbody>
     <tr><td>01164 M60 · −9%</td><td class="down">−1.18%</td><td class="down">−0.70%</td><td class="down">−0.37%</td></tr>
     <tr><td>01164 M60 · −12%</td><td class="down">−1.28%</td><td class="down">−0.98%</td><td class="down">−0.73%</td></tr>
     <tr><td>01164 M60 · −15%</td><td class="down">−1.48%</td><td class="down">−1.31%</td><td class="down">−0.82%</td></tr>
     <tr class="hl"><td><b>01164 RB · −12%</b></td><td>+0.00%</td><td class="up"><b>+1.28%</b></td><td>+1.05%</td></tr>
     <tr class="hl"><td><b>01164 RB · −9%</b></td><td>+0.44%</td><td class="up"><b>+1.65%</b></td><td>+1.68%</td></tr>
-    <tr><td>09696 WR · −9%</td><td class="down">−4.67%</td><td class="down">−3.70%</td><td class="down">−3.04%</td></tr>
-    <tr><td>09696 WR · −12%</td><td class="down">−5.28%</td><td class="down">−4.31%</td><td class="down">−3.65%</td></tr>
-    <tr><td>09696 WR · −15%</td><td class="down">−5.62%</td><td class="down">−4.66%</td><td class="down">−3.99%</td></tr>
+    <tr><td>09696 WR · −9%</td><td class="down">−3.87%</td><td class="down">−3.28%</td><td class="down">−4.32%</td></tr>
+    <tr><td>09696 WR · −12%</td><td class="down">−4.08%</td><td class="down">−3.49%</td><td class="down">−4.75%</td></tr>
+    <tr><td>09696 WR · −15%</td><td class="down">−4.40%</td><td class="down">−3.81%</td><td class="down">−5.11%</td></tr>
   </tbody>
 </table>
 </div>
 
 <div class="note-box">
   <b>01164 的兩種定義在打架，但幅度比原稿小得多：</b>M60（反彈到壓力）在 20 日內全部負期望；RB（自低點反彈 10–30%）在 T+40 的中位是 <b>+1.64%</b>、勝率 <b>52.7%</b>（n=74），同期隨機基準是 −0.87% / 47.0%——<b>中位超額 +2.51pp、勝率超額 +5.7pp</b>。<b>翻譯成交易語言：短線（T+20 中位 +0.56%，基準 0.00%）已無賠率；中線只有薄邊際，扣掉 0.75% 來回成本後約 +0.9%，且要先承受 MAE 中位 −8.54% 的回撤。這不足以支撐「重倉等反彈」，只支撐「小倉、有止損、願意等」。</b><br><br>
-  <b>09696 沒有這種分歧：</b>三個止損寬度 × 三個目標，九組全部為負。止損放寬只是把虧損速度調慢，不會把期望轉正。
+  <b>09696 沒有這種分歧：</b>三個止損寬度 × 三個目標，cooldown=10 時九格全部為負（−5.11% ~ −3.28%）。止損放寬只是把虧損速度調慢，不會把期望轉正。冷卻期拉長到 20／25 日時，最寬止損 × 最遠目標那一格轉為 +0.11%／+0.21%——這是雜訊級的正值，不構成進場依據，但「九格全負」這句話只在 cd≤15 成立。
 </div>
 
 <h2>05 &nbsp;價位地圖：上方多近，下方多遠<span class="en">TOUCH PROBABILITY</span></h2>
@@ -300,10 +300,10 @@ footer p{margin-bottom:8px}
 <table>
   <thead><tr><th>紅線</th><th>01164</th><th>09696</th></tr></thead>
   <tbody>
-    <tr><td>事件淨期望 &lt; 隨機基準</td><td class="down"><b>是</b>（M60：−1.61% vs 0.00%）</td><td class="down"><b>是</b>（WR：−6.74% vs −1.94%）</td></tr>
-    <tr><td>扣成本後淨期望 &lt; 0</td><td class="down"><b>是</b>（M60 九組全負）</td><td class="down"><b>是</b>（WR 九組全負）</td></tr>
-    <tr><td>事件 n &lt; 10</td><td>否（41 / 77）</td><td>否（16）</td></tr>
-    <tr><td>近三年勝率 &lt; 50%</td><td class="down"><b>是</b>（2026 年 0%，n=2；2025 年 50%）</td><td class="down"><b>是</b>（2023 20%、2024 25%）</td></tr>
+    <tr><td>事件淨期望 &lt; 隨機基準</td><td class="down"><b>是</b>（M60：−1.61% vs 0.00%）</td><td class="down"><b>是</b>（WR：−7.31% vs −1.94%）</td></tr>
+    <tr><td>扣成本後淨期望 &lt; 0</td><td class="down"><b>是</b>（M60 九組全負）</td><td class="down"><b>是</b>（WR 九格 −5.11~−3.28，cd=10）</td></tr>
+    <tr><td>事件 n &lt; 10</td><td>否（41 / 77）</td><td>否（29）</td></tr>
+    <tr><td>近三年勝率 &lt; 50%</td><td class="down"><b>是</b>（2026 年 0%，n=2；2025 年 50%）</td><td class="down"><b>是</b>（近三年 2024/2025/2026 合計 n=18、28%）</td></tr>
     <tr><td>仍處真破位序列</td><td>否（近 120 日僅 1 次真破位）</td><td class="down"><b>是</b>（近 120 日 10 次真破位）</td></tr>
     <tr><td>合理倉位 &lt; 1 手（10 萬資金）</td><td>否（−12% 止損可買 1 手）</td><td>否（−12% 止損可買 2 手）</td></tr>
   </tbody>
@@ -345,7 +345,7 @@ footer p{margin-bottom:8px}
   <p style="font-size:12.5px;color:#4b5563;line-height:1.9">
   <b>方法局限：</b><br>
   ① 01164 的 M60 / RB 事件為本次自定義，參數（±2.5% × RSI≥60、10–30% 反彈）未經跨標的驗證，只在此標的上有效。其中 <b>RB 的原稿 n=44 已證實不可複現</b>（當時用臨時腳本，該腳本已刪除）；本版已改用現行 <code>EVENT_SPECS["R2"]</code> 的 n=77 重算，T+40 中位由 +5.32% 降為 +1.64%，結論強度同步下調。<br>
-  ② 09696 的 WR 事件 n=16，樣本偏薄；且 2022-07 上市至今僅 1,068 根日 K，無法覆蓋上一輪完整週期。<br>
+  ② 09696 的 WR 事件（距 250 日低 5–15%）已固化進 <code>EVENT_SPECS["WR"]</code>，cooldown=10 時 n=29（T+20 可用 27）。原稿寫的 n=16／−6.74%／26.7% 分別來自 cooldown 22／5／未知切點，<b>三個數字不對應同一組參數，無法複現</b>，本版已全部改用重跑值。冷卻期敏感：cd=20 時 −9%/+20% 格為 +0.11%、cd=25 為 +0.21%（雜訊級正值），「九格全負」只在 cd≤15 成立。且 2022-07 上市至今僅 1,068 根日 K，無法覆蓋上一輪完整週期。<br>
   ③ 09696 的歷史統計存在明顯時期偏差：2023 年勝率 20%、2024 年 25%，遠低於合併數字。<br>
   ④ 「曾觸及」為 20 日內任一日的高/低點觸及，不代表收盤價，也不代表可成交價。<br>
   ⑤ 路徑模擬扣 0.75% 來回成本，未計滑價、印花稅差異與借券費用。<br>
@@ -487,10 +487,10 @@ function idxOf(D, date) { return D.indexOf(date); }
         axisLabel: { fontSize: 10, color: '#9ca3af', formatter: '{value}%' }, splitLine: { show: false } }
     ],
     series: [
-      { name: 'T+20 中位', type: 'bar', data: [-1.61, 0.56, 0.00, -6.74, -4.80, -1.94], barWidth: 26,
+      { name: 'T+20 中位', type: 'bar', data: [-1.61, 0.56, 0.00, -7.31, -4.80, -1.94], barWidth: 26,
         itemStyle: { color: p => p.value >= 0 ? C_UP : C_DN, borderRadius: 3 },
         label: { show: true, position: 'top', fontSize: 10, color: '#374151', formatter: p => p.value.toFixed(2) + '%' } },
-      { name: '勝率', type: 'line', yAxisIndex: 1, data: [42.5, 50.0, 49.6, 26.7, 23.1, 42.5],
+      { name: '勝率', type: 'line', yAxisIndex: 1, data: [42.5, 50.0, 49.6, 22.0, 23.1, 42.5],
         symbol: 'circle', symbolSize: 6, lineStyle: { width: 1.6, color: '#1a1d21' },
         itemStyle: { color: '#1a1d21' }, label: { show: true, position: 'bottom', fontSize: 9.5, color: '#6b7280', formatter: '{c}%' } }
     ]
@@ -504,12 +504,12 @@ function idxOf(D, date) { return D.indexOf(date); }
   const data = [
     [-1.18, -0.70, -0.37], [-1.28, -0.98, -0.73], [-1.48, -1.31, -0.82],
     [0.44, 1.65, 1.68], [0.00, 1.28, 1.05], [0.06, 1.41, 1.20],
-    [-4.67, -3.70, -3.04], [-5.28, -4.31, -3.65], [-5.62, -4.66, -3.99]
+    [-3.87, -3.28, -4.32], [-4.08, -3.49, -4.75], [-4.40, -3.81, -5.11]
   ];
   const series = ['01164 M60', '01164 RB', '09696 WR'].map((name, gi) => ({
     name: name, type: 'bar', barWidth: 12,
     data: stops.map((_, si) => ({
-      value: data[gi * 3 + si].reduce((a, b) => (Math.abs(b) > Math.abs(a) ? b : a), 0),
+      value: data[gi * 3 + si][1],
       itemStyle: { color: data[gi * 3 + si][1] >= 0 ? C_UP : C_DN, opacity: 0.9, borderRadius: 2 }
     })),
     label: { show: false }

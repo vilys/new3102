@@ -250,11 +250,21 @@ _METRIC_RE = re.compile(r"\b(MA\d{1,3}|RSI\d{1,2}|ATR)\b[\s:：=＝]{0,3}(\d+\.\
 _METRIC_REV_RE = re.compile(r"(\d+\.\d+)\s*[（(]\s*(MA\d{1,3}|RSI\d{1,2}|ATR)\s*[）)]")
 # 歷史低點型：這些價位「應該」等於某根 K 的低點
 # `[^0-9\-<>。！？]` 刻意擋掉跨標籤與跨句：否則「支撐…1.06 倍均量」會被誤認成價位
+# 價位允許整數（港股低價股常寫「失效線 20」「支撐 22」），但排除
+#   「20 日均線」「3 次」「25%」「10/23」（日期）「cooldown=10」（參數）
+# 這類不是價位的數字。整數上限 4 位：5 位以上多是股票代號（09696）而非價格。
+_NUM = r"-?\d{1,4}(?:\.\d+)?"
+_NUM_TAIL = r"(?![\d./\-]|\s*[%個日天倍次月年])"
 _LOW_CLAIM_RE = re.compile(
-    r"(失效線|支撐|前低|觀察線|防守線|鐵底|頸線)[^0-9\-<>。！？]{0,24}(-?\d+\.\d+)")
+    rf"(失效線|支撐|前低|觀察線|防守線|鐵底|頸線)[^0-9\-<>。！？]{{0,12}}(?<![=+\-/])({_NUM}){_NUM_TAIL}")
 # 目標型：多半是圖表推導的壓力／目標，也可能引用分析師目標價 → 只提示，不判 FAIL
 _HIGH_CLAIM_RE = re.compile(
-    r"(壓力|阻力|目標價|目標|下一站|上看)[^0-9\-<>。！？]{0,24}(-?\d+\.\d+)")
+    rf"(壓力|阻力|目標價|目標|上看)[^0-9\-<>。！？]{{0,12}}(?<![=+\-/])({_NUM}){_NUM_TAIL}")
+# 「下一站」方向由上下文決定（見 check_price_claims），不預設歸類
+_NEXT_CLAIM_RE = re.compile(
+    rf"(下一站)[^0-9\-<>。！？]{{0,12}}(?<![=+\-/])({_NUM}){_NUM_TAIL}")
+_DOWN_CTX = ("失守", "跌破", "下看", "下探", "回測", "下方", "支撐", "打回")
+_UP_CTX = ("上看", "突破", "挑戰", "上方", "壓力", "衝上")
 # 計算型：止損價通常由「進場價 × (1−止損%)」算出，本來就不會等於任何歷史低點
 _STOP_CLAIM_RE = re.compile(
     r"(止損|止蝕|停損)[^0-9\n]{0,6}(?:[−\-]?\d+(?:\.\d+)?\s*%\s*[（(]?\s*)?"
@@ -381,7 +391,8 @@ def check_price_claims(html, arrays):
 
     分三類處理，避免把「合理的計算值」誤判成錯誤：
       歷史低點型（失效線/支撐/前低/觀察線）→ 必須命中低點序列，否則 FAIL
-      目標型（壓力/目標/下一站）           → 只對高點序列做提示，不判 FAIL
+      目標型（壓力/目標/上看）             → 只對高點序列做提示，不判 FAIL
+      「下一站」                            → 由上下文決定比低點還是高點
       計算型（止損）                       → 驗算術；算不出來只列 INFO
 
     價位若落在數列窗口之外（例如引用 2025-04 的低點，而數列只有近 105 根），
@@ -425,8 +436,16 @@ def check_price_claims(html, arrays):
             lo, hi = window(low_series)
             best = nearest(low_series, price)
             if not (lo * 0.995 <= price <= hi * 1.005):
-                infos.append(f"{label} {price} 超出數列窗口（{lo:.3f}–{hi:.3f}），"
-                             f"無法驗證（可能引用更早的低點）")
+                # 低於窗口最低點、但差距在 5% 以內：不像是「更早週期的低點」
+                # （那種通常明顯更低，例如 2025-04 的 20.25 vs 近 105 根最低 22.24），
+                # 更像是寫錯、或把預測值寫成了歷史支撐 → 判錯，要求標明日期。
+                if lo * 0.95 <= price < lo * 0.995:
+                    problems.append(
+                        f"{label} {price} 低於近 260 根最低點 {lo:.3f}（差 {lo - price:.3f}），"
+                        f"且未對應任何低點；若引用更早的低點請標明日期")
+                else:
+                    infos.append(f"{label} {price} 超出數列窗口（{lo:.3f}–{hi:.3f}），"
+                                 f"無法驗證（可能引用更早的低點）")
             elif best and best[0] > 0.0015 * price:
                 problems.append(
                     f"{label} {price} 在近 260 根低點中找不到對應值"
@@ -448,6 +467,29 @@ def check_price_claims(html, arrays):
             elif best and best[0] > 0.0015 * price:
                 infos.append(f"{label} {price} 未落在近 260 根高點上"
                              f"（最接近 {best[1]:.3f}，差 {best[0]:.3f}，來源 {best[2]}）")
+
+    # ---- 「下一站」：方向由上下文決定，不是一律當成上方目標
+    #      「帶量失守，下一站 20.25」是下方價位，拿去比高點等於失去覆蓋。
+    for m in _NEXT_CLAIM_RE.finditer(text):
+        price = float(m.group(2))
+        if price <= 0:
+            continue
+        ctx = text[max(0, m.start() - 40):m.start()]
+        d = max((ctx.rfind(w) for w in _DOWN_CTX), default=-1)
+        u = max((ctx.rfind(w) for w in _UP_CTX), default=-1)
+        checked += 1
+        target, kind = (low_series, "低點") if d > u else (high_series, "高點")
+        if not target:
+            infos.append(f"下一站 {price} 屬{kind}方向，但報告內無{kind}數列可比對")
+            continue
+        lo, hi = window(target)
+        best = nearest(target, price)
+        if not (lo * 0.995 <= price <= hi * 1.005):
+            infos.append(f"下一站 {price}（{kind}方向）超出數列窗口（{lo:.3f}–{hi:.3f}），"
+                         f"未自動驗證")
+        elif best and best[0] > 0.0015 * price:
+            infos.append(f"下一站 {price}（{kind}方向）未落在近 260 根{kind}上"
+                         f"（最接近 {best[1]:.3f}，差 {best[0]:.3f}，來源 {best[2]}）")
 
     # ---- 計算型：止損價不是歷史低點，改驗算術
     for m in _STOP_CLAIM_RE.finditer(text):
@@ -492,8 +534,18 @@ def main(argv):
     if not argv:
         print(__doc__)
         return 2
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
     path = argv[0]
-    html = open(path, encoding="utf-8").read()
+    if not os.path.isfile(path):
+        print(f"錯誤：找不到檔案 {path}\n"
+              f"第一個參數必須是報告 HTML。用法：\n"
+              f"  python verify_report.py cases/xxx/報告.html",
+              file=sys.stderr)
+        return 2
+    with open(path, encoding="utf-8") as fh:
+        html = fh.read()
     errors, warnings, skipped = [], [], []
 
     print(f"檔案: {path}  ({len(html):,} chars)")

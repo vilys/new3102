@@ -11,10 +11,14 @@ CLI:
     python event_study.py 01164.json --profile
 
 import:
-    from event_study import build_events, forward_stats, path_matrix, baseline_path, touch_bootstrap
+    from event_study import build_events, forward_stats, path_matrix, baseline_indices, touch_bootstrap
+
+    （baseline_indices 產生隨機基準的進場索引，要再交給 forward_stats / path_stats
+      才會得到統計值；沒有 baseline_path 這個函式。）
 """
 
 import json
+import os
 import statistics as st
 import sys
 
@@ -84,15 +88,20 @@ EVENT_SPECS = {
     # D 深度回撤但無均線/RSI 條件（週期股專用）
     "D": lambda I, i: I["prior_high"][i] is not None and I["prior_high"][i] > 0
                      and I["close"][i] / I["prior_high"][i] - 1 <= -0.50,
-    # R1 反彈至 MA60 附近且動能偏強（2026-11 雙標的報告用；n=41）
+    # R1 反彈至 MA60 附近且動能偏強（2026-11 雙標的報告用）
     #    「反彈到壓力位」的狀態，不是「探底」。
     "R1": lambda I, i: I["ma60"][i] not in (None, 0) and I["rsi6"][i] is not None
                       and abs(I["close"][i] / I["ma60"][i] - 1) <= 0.025
                       and I["rsi6"][i] >= 60,
-    # R2 自 250 日低反彈 10–30%（2026-11 雙標的報告用；n=44）
+    # R2 自 250 日低反彈 10–30%（2026-11 雙標的報告用）
     #    看的是「已經離底多遠」，而非「離底多近」。
     "R2": lambda I, i: I["prior_low"][i] not in (None, 0)
                       and 0.10 <= I["close"][i] / I["prior_low"][i] - 1 <= 0.30,
+    # WR 距 250 日低 5–15% 的弱勢盤整（2026-11 雙標的報告用）
+    #    介於「貼近前低」與「已反彈一段」之間：跌不深、也彈不動的狀態。
+    #    與其他事件一樣用預設 cooldown=10 去重。
+    "WR": lambda I, i: I["prior_low"][i] not in (None, 0)
+                       and 0.05 <= I["close"][i] / I["prior_low"][i] - 1 <= 0.15,
 }
 
 EVENT_NAMES = {
@@ -107,6 +116,7 @@ EVENT_NAMES = {
     "D": "較 252 日高回撤 ≥50%",
     "R1": "反彈至 MA60 ±2.5% 且 RSI6≥60",
     "R2": "自 250 日低反彈 10–30%",
+    "WR": "距 250 日低 5–15%（弱勢盤整）",
 }
 
 
@@ -568,7 +578,24 @@ def _cli(argv):
     if not argv:
         print(__doc__)
         return 1
-    rows = json.load(open(argv[0], encoding="utf-8"))
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
+    if not os.path.isfile(argv[0]):
+        print(f"錯誤：找不到檔案 {argv[0]}\n"
+              f"第一個參數必須是 market_data.py 產出的日 K JSON。先抓資料：\n"
+              f"  python market_data.py hk01164 --start 2015-01-01 --out 01164.json",
+              file=sys.stderr)
+        return 2
+    try:
+        with open(argv[0], encoding="utf-8") as fh:
+            rows = json.load(fh)
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        print(f"錯誤：{argv[0]} 不是有效的日 K JSON（{exc}）", file=sys.stderr)
+        return 2
+    if not rows:
+        print(f"錯誤：{argv[0]} 沒有任何 K 線", file=sys.stderr)
+        return 2
     args = argv[1:]
 
     if "--insecure" in args:

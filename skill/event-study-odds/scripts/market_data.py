@@ -4,9 +4,14 @@
 market_data.py — 日K抓取、合併、盤中補K、報價。
 
 用法（CLI）:
+    python market_data.py --help
     python market_data.py hk01164 --start 2015-01-01 --out 01164.json
     python market_data.py US:URNM --range 10y --out urnm.json
     python market_data.py quote hk01164
+
+支援的代號格式:
+    hk + 4–5 位數字（hk01164）／US: + Yahoo 代號（US:CCJ）
+    其他格式會在發請求之前就被擋下，不會拿任意字串去打端點。
 
 用法（import）:
     from market_data import fetch_hk, fetch_us, append_intraday, quote
@@ -20,6 +25,7 @@ market_data.py — 日K抓取、合併、盤中補K、報價。
 
 import json
 import os
+import re
 import ssl
 import sys
 import urllib.request
@@ -285,11 +291,26 @@ def to_ohlc(rows):
     return d, o, c, h, lo, v
 
 
+def _validate_symbol(sym):
+    """在發請求之前檢查代號格式，避免拿任意字串去打端點。回傳錯誤字串或 None。"""
+    s = (sym or "").strip()
+    if re.fullmatch(r"(?i)hk\d{4,5}", s):
+        return None
+    if re.fullmatch(r"(?i)us:[A-Za-z0-9.\-]{1,10}", s):
+        return None
+    return (f"無法辨識的標的代號 {sym!r}。支援格式：\n"
+            f"  港股  hk01164（hk + 4–5 位數字）\n"
+            f"  美股  US:CCJ（US: + Yahoo 代號）")
+
+
 def _cli(argv):
     setup_console()
     if not argv:
         print(__doc__)
         return 1
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
     cmd = argv[0]
 
     if "--insecure" in argv:
@@ -298,21 +319,42 @@ def _cli(argv):
               file=sys.stderr)
 
     if cmd == "quote":
+        if len(argv) < 2 or argv[1].startswith("-"):
+            print("錯誤：quote 需要標的代號，例如 python market_data.py quote hk01164",
+                  file=sys.stderr)
+            return 2
+        bad = _validate_symbol(argv[1])
+        if bad:
+            print(f"錯誤：{bad}", file=sys.stderr)
+            return 2
         q = fill_w52(quote(argv[1]))
         print(json.dumps(q, ensure_ascii=False, indent=2))
         return 0
+
+    bad = _validate_symbol(cmd)
+    if bad:
+        print(f"錯誤：{bad}", file=sys.stderr)
+        return 2
 
     out = None
     start, rng, verbose = "2015-01-01", "10y", False
     i = 1
     while i < len(argv):
         a = argv[i]
-        if a == "--out":
-            out = argv[i + 1]; i += 2
-        elif a == "--start":
-            start = argv[i + 1]; i += 2
-        elif a == "--range":
-            rng = argv[i + 1]; i += 2
+        if a in ("--out", "--start", "--range"):
+            if i + 1 >= len(argv) or argv[i + 1].startswith("--"):
+                print(f"錯誤：{a} 需要一個值（例：{a} "
+                      f"{'01164.json' if a == '--out' else '2015-01-01' if a == '--start' else '10y'}）",
+                      file=sys.stderr)
+                return 2
+            val = argv[i + 1]
+            if a == "--out":
+                out = val
+            elif a == "--start":
+                start = val
+            else:
+                rng = val
+            i += 2
         elif a == "--verbose":
             verbose = True; i += 1
         else:
