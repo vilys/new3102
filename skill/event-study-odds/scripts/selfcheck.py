@@ -35,8 +35,18 @@ import sys
 import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# HERE = <repo>/skill/event-study-odds/scripts，往上三層才是 repo 根
-ROOT = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+# 這支腳本會活在兩個位置，掃描範圍必須跟著變：
+#   repo 內      <repo>/skill/event-study-odds/scripts → ROOT=<repo>（含 README/CHANGELOG/cases）
+#   已安裝       ~/.workbuddy/skills/event-study-odds/scripts → ROOT=skill 目錄
+# 若一律往上三層，安裝後會變成掃 ~/.workbuddy 整個目錄，把別的專案備份
+# 裡的舊 README 也算進來（實測會誤報 6×5）。
+SKILL_ROOT = os.path.abspath(os.path.join(HERE, ".."))
+_REPO = os.path.abspath(os.path.join(HERE, "..", "..", ".."))
+if (os.path.isfile(os.path.join(_REPO, "README.md"))
+        and os.path.isdir(os.path.join(_REPO, "skill"))):
+    ROOT = _REPO
+else:
+    ROOT = SKILL_ROOT
 SCRIPTS = ["market_data.py", "indicators.py", "event_study.py",
            "verify_report.py", "selfcheck.py"]
 
