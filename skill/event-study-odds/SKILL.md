@@ -188,9 +188,12 @@ from event_study import year_split, break_sequence, classify_breaks, seq_stats, 
 
 ```bash
 python scripts/event_study.py 01164.json --years                 # 分年勝率
-python scripts/event_study.py 01164.json --cooldown-sweep=5,10,20 # 冷卻期敏感度
+python scripts/event_study.py 01164.json --cooldown-sweep=5,10,20 # 冷卻期敏感度（每個 cd 各印一張網格）
+python scripts/event_study.py 01164.json --cooldown=20            # 固定 cd=20，只印一張矩陣
 python scripts/event_study.py 01164.json --breaks                # 破位序列（自動標註樣本不足）
 ```
+
+**`--cooldown` 與 `--cooldown-sweep` 不是同義詞**：前者固定一個冷卻期、輸出**一張**矩陣；後者對清單裡每個冷卻期各輸出**一張同網格**矩陣，用來看「哪一格在哪個 cd 轉正」。兩者都吃 `--stops/--targets`；不帶時用 CLI 預設 **3×2**（−9/−12/−15% × +12/+16%，`--help` 會印出實際值），要對齊報告九格就明確帶 `--stops=-9,-12,-15 --targets=10,15,20`。
 
 `summary_table` 會在事件 n<30 時自動附分年表；路徑矩陣在可用樣本 n<30 時自動附冷卻期敏感度。**冷卻期不是中性參數**：實測 01164 的 N 事件（`--stops=-12 --targets=12`）在 5/10/20 日冷卻期下，淨期望從 **+5.23%**（cooldown=10）擺盪到 **+1.03%**（cooldown=20），差距 4.2pp。用預設 `-9/+12` 則是 2.50 / 3.38 / 1.70（區間僅 1.68pp）——**引用這個例子時必須一併寫出止損／目標參數**，否則讀者用預設指令重現不出 4.2pp。
 
@@ -245,7 +248,8 @@ exit 2 的處理政策（二選一，不可默默放行）：
 **腳本自身的回歸**（改完代碼、發版前跑）：
 
 ```bash
-python scripts/selfcheck.py     # docstring import、--help、無參數、未知事件、基準列級別
+python scripts/selfcheck.py     # docstring import、--help、無參數、未知事件、基準列級別、
+                                # Markdown 幽靈檔案、文件預設網格、冷卻期掃描格數
 ```
 
 ---
@@ -276,7 +280,7 @@ python scripts/selfcheck.py     # docstring import、--help、無參數、未知
 | `scripts/indicators.py` | MA/BOLL/RSI/KDJ/MACD/ATR/prior_low，口徑固定 |
 | `scripts/event_study.py` | 事件、去重、前向分布、路徑矩陣、隨機基準、破位分類、序列、分年、成交分布 |
 | `scripts/verify_report.py` | HTML 交付前自檢（渲染層＋財務啟發式；**需要 Node.js**） |
-| `scripts/selfcheck.py` | 腳本自身回歸：docstring import、`--help`、無參數、未知事件、基準列級別 |
+| `scripts/selfcheck.py` | 腳本自身回歸：docstring import、`--help`、無參數、未知事件、基準列級別、Markdown 幽靈檔案、文件預設網格、冷卻期掃描格數 |
 
 常用指令：
 

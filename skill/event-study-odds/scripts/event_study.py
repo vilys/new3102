@@ -34,6 +34,25 @@ def setup_console():
             pass
 
 
+# ---------------------------------------------------------------- CLI 預設值
+# 單一來源：--help、_cli 的解析、文件與 selfcheck 都引用這三個常數。
+# 不要再在別處寫死「3×2」「−9/−12/−15 × +12/+16」——第五輪就是因為
+# README 與 glossary 各抄了一份（還抄成 6×5）才出錯。
+#
+# 與 path_matrix() 的函式預設（6×5）刻意不同：CLI 只印報告常用的三檔止損，
+# 避免終端一次刷出 30 格；API 呼叫者需要完整掃描時自己傳 stops/targets。
+DEFAULT_STOPS = (-9, -12, -15)
+DEFAULT_TARGETS = (12, 16)
+DEFAULT_COST = 0.75
+
+
+def grid_label(stops=DEFAULT_STOPS, targets=DEFAULT_TARGETS):
+    """把網格講成人看得懂的一句話，供 --help 與冷卻期掃描的標題共用。"""
+    return (f"{len(stops)}×{len(targets)}"
+            f"（止損 {'/'.join(f'{s:+.0f}' for s in stops)}% × "
+            f"目標 {'/'.join(f'+{t:.0f}' for t in targets)}%）")
+
+
 # 樣本量四級（對齊 references/statistics-protocol.md 第十節）
 def sample_level(n):
     if n >= 100:
@@ -561,24 +580,56 @@ def _print_matrix(rows, I, k, stops, targets, cost, H=20, cooldown=10):
         print(f"  裁決：{verdict}")
         if len(usable) < 30:
             print(f"  ⚠️ 可用樣本 n={len(usable)}（<30）：以上數字只能說方向，且必須做冷卻期敏感度檢查"
-                  f"（加 --cooldown-sweep=5,10,20）。")
+                  f"（加 --cooldown-sweep=5,10,20：會對每個冷卻期各印一張同網格矩陣）。")
             _print_year_split(rows, usable, H, indent="  ")
 
 
-def _cooldown_sweep(rows, I, k, cds, stop, target, cost, H=20):
-    print(f"\n冷卻期敏感度 [{k}]  止損 {stop:+.0f}% / 目標 +{target:.0f}% / T+{H}")
-    # 預設只掃「−9% / +12%」一格，與報告常用的 3×3 九格（10/15/20）不同。
-    # 不提示的話，讀者會拿 −0.73% 去對報告的 +0.11%，以為揭露寫錯。
-    print(f"  （目前只掃 {stop:+.0f}% / {target:+.0f}% 這一格；"
-          f"要對齊報告九格請加 --stops=-9,-12,-15 --targets=10,15,20）")
+def _cooldown_sweep(rows, I, k, cds, stops, targets, cost, H=20):
+    """對每個冷卻期各印一張完整的「止損 × 目標」矩陣。
+
+    舊版簽名只收單一 stop/target，卻在提示裡叫用戶加 --stops/--targets 對齊九格。
+    加了旗標也只會把「那一格」換成新的 stops[0]/targets[0]，永遠到不了九格——
+    提示本身是死路。現在收序列，提示才成立，也才答得出「哪一格在哪個 cd 轉正」。
+    """
+    print(f"\n冷卻期敏感度 [{k}]  {grid_label(stops, targets)} / T+{H} / 成本 {cost}%")
+    base = baseline_indices(len(rows), 20)
     for cd in cds:
         ev = build_events(I, k, cd)
-        r = path_stats(rows, ev, target, stop, H, cost)
-        if not r:
-            print(f"  cooldown={cd:>3}  n=0")
+        usable = [i for i in ev if i + H < len(rows)]
+        if not usable:
+            print(f"\n  ── cooldown={cd:>3}  事件 n={len(ev)} / 可用 n=0："
+                  f"距序列末端不足 {H} 日，無法模擬")
             continue
-        print(f"  cooldown={cd:>3}  n={r['n']:>3}  勝{fmt_win(r['n'], r['p_win'])}  "
-              f"淨{r['exp_net']:+.2f}%")
+        print(f"\n  ── cooldown={cd:>3}  事件 n={len(ev)} / 可用 n={len(usable)}")
+        cells = []
+        for s in stops:
+            line = f"    止損{s:>5.0f}% "
+            for t in targets:
+                r = path_stats(rows, usable, t, s, H, cost)
+                b = path_stats(rows, base, t, s, H, cost)
+                if not r:
+                    line += f"| 目標+{t:.0f}% 無資料 "
+                    continue
+                ex = r["exp_net"] - b["exp_net"] if b else None
+                cells.append((r["exp_net"], ex, s, t))
+                ex_s = f"{ex:+6.2f}" if ex is not None else "   n/a"
+                line += (f"| 目標+{t:.0f}% 勝{fmt_win(r['n'], r['p_win'])}"
+                         f" 淨{r['exp_net']:+6.2f}% 超{ex_s}pp ")
+            print(line)
+        if not cells:
+            print("    → 無可比較的格位")
+            continue
+        pos = [c for c in cells if c[0] > 0]
+        if pos:
+            best = max(cells, key=lambda c: c[0])
+            ex_s = f"{best[1]:+.2f}pp" if best[1] is not None else "n/a"
+            print(f"    → 正期望格 {len(pos)}/{len(cells)}：最佳 "
+                  f"({best[2]:+.0f}%, {best[3]:+.0f}%) {best[0]:+.2f}%"
+                  f"（超額 {ex_s}）")
+        else:
+            lo = min(c[0] for c in cells)
+            hi = max(c[0] for c in cells)
+            print(f"    → 正期望格 0/{len(cells)}：全部格位為負（{lo:+.2f}% ~ {hi:+.2f}%）")
 
 
 def _cli(argv):
@@ -588,6 +639,12 @@ def _cli(argv):
         return 1
     if "-h" in argv or "--help" in argv:
         print(__doc__)
+        print("目前 CLI 預設網格：" + grid_label())
+        print("  （path_matrix() 的函式預設是 6×5，供 API 呼叫者使用；"
+              "CLI 預設刻意較窄，只印報告常用的三檔止損。）")
+        print("  --cooldown=N              固定冷卻期，輸出『一張』完整路徑矩陣")
+        print("  --cooldown-sweep=5,10,20  對每個冷卻期各輸出『一張』同網格矩陣，"
+              "用來看哪一格在哪個 cd 轉正")
         return 0
     if not os.path.isfile(argv[0]):
         print(f"錯誤：找不到檔案 {argv[0]}\n"
@@ -673,7 +730,7 @@ def _cli(argv):
     cd = int(_opt(args, "--cooldown", "10"))
     summary_table(rows, I, kinds, cooldown=cd, show_years=("--years" in args))
 
-    stops, targets, cost = (-9, -12, -15), (12, 16), 0.75
+    stops, targets, cost = DEFAULT_STOPS, DEFAULT_TARGETS, DEFAULT_COST
     if _opt(args, "--stops"):
         stops = tuple(float(x) for x in _opt(args, "--stops").split(","))
     if _opt(args, "--targets"):
@@ -698,13 +755,13 @@ def _cli(argv):
         cds = [int(x) for x in sweep.split(",")]
         for k in matrix_kinds:
             if k in EVENT_SPECS:
-                _cooldown_sweep(rows, I, k, cds, stops[0], targets[0], cost)
+                _cooldown_sweep(rows, I, k, cds, stops, targets, cost)
     elif matrix_kinds and matrix_kinds[0] in EVENT_SPECS:
         ev = build_events(I, matrix_kinds[0], cd)
         usable = [i for i in ev if i + 20 < len(rows)]
         if 0 < len(usable) < 30:
             _cooldown_sweep(rows, I, matrix_kinds[0], [5, 10, 20],
-                            stops[0], targets[0], cost)
+                            stops, targets, cost)
     return 0
 
 

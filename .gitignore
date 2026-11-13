@@ -4,3 +4,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 ~$*
+
+# 快速開始用 --out 產生的日 K（09696.json／01164.json 等）。
+# 只擋 repo 根目錄，cases/ 內的檔案不受影響。
+/*.json
